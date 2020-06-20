@@ -1,18 +1,8 @@
 #include <string.h>
-#include <SoftwareSerial.h>
 
 #include "actions.h"
 #include "constants.h"
 
-
-// Establish ports (first is Serial, other two
-// are SoftwareSerials on pins 2/3 and 4/5)
-SoftwareSerial port2(port2RX, port2TX), port3(port3RX, port3TX);
-Stream* PORTS[3] = {
-    &Serial,
-    &port2,
-    &port3
-};
 
 void setup() {
     Serial.begin(9600);
@@ -43,15 +33,15 @@ void loop() {
 void processMessage(uint8_t port){
     char *cmd;
     int i = 0;
-    while(PORTS[port]->available() > 0){
-        cmd[i] = PORTS[port]->read();
+    while(PORTS[port].available() > 0){
+        cmd[i] = PORTS[port].read();
         i++;
     }
 
-    char *token = strtok(cmd, " ");
+    const char *token = strtok(cmd, " ");
 
-    if(ACTIONS.find(cmd) != ACTIONS.end())
-        PORTS[port]->println(ACTIONS[token]());
-    else
-        PORTS[port]->println("Invalid command name");
+    if(strcmp(token, "version") == 0) PORTS[port].print(get_version());
+    else if(strcmp(token, "discover") == 0) PORTS[port].print(discover_network(port));
+    else if(strcmp(token, "set_color") == 0) PORTS[port].print(set_color(port));
+    else PORTS[port].print(ERR_INVALID_ARGS);
 }
