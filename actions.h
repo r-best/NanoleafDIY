@@ -1,7 +1,8 @@
-// #include <sys/time.h>
+#include <time.h>
 #include <string.h>
+#include <inttypes.h>
 
-#include "led.c"
+#include "led.h"
 #include "constants.h"
 
 
@@ -9,8 +10,47 @@ char* _get_next_arg(){
     return strtok(NULL, " ");
 }
 
-char* get_version(uint8_t port){
+const char* get_version(){
     return VERSION;
+}
+
+/**
+ * 
+ */
+boolean _request_discover(uint8_t port){
+    if(PORTS[port] != &Serial) ((SoftwareSerial*)PORTS[port])->listen();
+    PORTS[port]->print("discover");
+    time_t start, now;
+    time(&start);
+    do {
+        char* resp;
+        int i = 0;
+        while(PORTS[port]->available() > 0){
+            resp[i] = PORTS[port]->read();
+            i++;
+        }
+        if(strcmp(resp, "Acknowledged!") == 0)
+            return true;
+        time(&now);
+    } while(difftime(now, start) < DISCOVERY_HANDSHAKE_TIMEOUT);
+    return false;
+}
+
+/**
+ * 
+ */
+void _receive_discover(uint8_t port, char** tree){
+    if(PORTS[port] != &Serial) ((SoftwareSerial*)PORTS[port])->listen();
+    time_t start, now;
+    time(&start);
+    do {
+        int i = 0;
+        while(PORTS[port]->available() > 0){
+            *tree[i] = PORTS[port]->read();
+            i++;
+        }
+        time(&now);
+    } while(difftime(now, start) < DISCOVERY_RESPONSE_TIMEOUT);
 }
 
 /**
@@ -19,9 +59,9 @@ char* get_version(uint8_t port){
  * will check with both of its neighbors, etc..,
  * until the network is fully mapped
  */
-char* discover_network(uint8_t port){
+const char* discover_network(uint8_t port){
     // Let requesting panel know we heard
-    PORTS[port].print("Acknowledged!");
+    PORTS[port]->print("Acknowledged!");
 
     uint8_t left, right;
     if      (port == 0) { left = 1; right = 2; }
@@ -45,44 +85,7 @@ char* discover_network(uint8_t port){
     // Set color to green
 }
 
-/**
- * 
- */
-void _receive_discover(uint8_t port, char** tree){
-    PORTS[port].listen();
-    gettimeofday(&start, NULL);
-    do {
-        int i = 0;
-        while(PORTS[port].available > 0){
-            *tree[i] = PORTS[port].read();
-            i++;
-        }
-        gettimeofday(&now, NULL);
-    } while(now.tv_usec - start.tv_usec < DISCOVERY_RESPONSE_TIMEOUT*1000);
-}
-
-/**
- * 
- */
-boolean _request_discover(uint8_t port){
-    PORTS[port].listen();
-    PORTS[port].print("discover");
-    gettimeofday(&start, NULL);
-    do {
-        char* resp;
-        int i = 0;
-        while(PORTS[port].available > 0){
-            resp[i] = PORTS[port].read();
-            i++;
-        }
-        if(strcmp(resp, "Acknowledged!") == 0)
-            return true;
-        gettimeofday(&now, NULL);
-    } while(now.tv_usec - start.tv_usec < DISCOVERY_HANDSHAKE_TIMEOUT*1000);
-    return false;
-}
-
-char* set_color(uint8_t port){
+const char* set_color(){
     uint8_t colors[3] = {0, 0, 0};
     for(int i = 0; i < 3; i++){
         char *temp = _get_next_arg();
@@ -93,6 +96,6 @@ char* set_color(uint8_t port){
 
         colors[i] = color;
     }
-    set_solid(colors);
+    // set_solid(colors);
     return SUCCESS;
 }

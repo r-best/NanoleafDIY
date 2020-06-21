@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 
 #include "actions.h"
 #include "constants.h"
@@ -9,6 +10,8 @@ void setup() {
     while(!Serial){;}
     port2.begin(9600);
     port3.begin(9600);
+
+    Serial.println("Ready!");
 }
 
 /**
@@ -26,22 +29,46 @@ void loop() {
 }
 
 /**
+ * Reads a command from the given port byte
+ * by byte until a line return is reached
+ */
+void readSerial(uint8_t port, char** cmd) {
+    int i = 0;
+    while (true) {
+        if(Serial.available() > 0){
+            char rc = PORTS[port]->read();
+            if (rc == '\n')
+                break;
+
+            (*cmd)[i++] = rc;
+        }
+        // Expand the buffer if we're running out of room
+        if(i >= COMMAND_BUFFER_SIZE)
+            *cmd = (char*)realloc(*cmd, sizeof(char)*COMMAND_BUFFER_SIZE*(++command_buf_mult));
+    }
+    // If it was a stupid Windows line return,
+    // let the string terminator overwrite it
+    if((*cmd)[i-1] == '\r') i--;
+
+    // Terminate the string
+    (*cmd)[i] = '\0';
+}
+
+/**
  * Reads the message from the given port.
  * If the message is a valid instruction, performs
  * the corresponding action
  */
 void processMessage(uint8_t port){
-    char *cmd;
-    int i = 0;
-    while(PORTS[port].available() > 0){
-        cmd[i] = PORTS[port].read();
-        i++;
-    }
+    char *cmd = (char*)malloc(sizeof(char)*COMMAND_BUFFER_SIZE);
+    readSerial(port, &cmd);
 
     const char *token = strtok(cmd, " ");
 
-    if(strcmp(token, "version") == 0) PORTS[port].print(get_version());
-    else if(strcmp(token, "discover") == 0) PORTS[port].print(discover_network(port));
-    else if(strcmp(token, "set_color") == 0) PORTS[port].print(set_color(port));
-    else PORTS[port].print(ERR_INVALID_ARGS);
+    if(strcmp(token, "version") == 0)           PORTS[port]->println(get_version());
+    else if(strcmp(token, "discover") == 0)     PORTS[port]->println(discover_network(port));
+    else if(strcmp(token, "set_color") == 0)    PORTS[port]->println(set_color());
+    else                                        PORTS[port]->println(ERR_INVALID_COMMAND);
+
+    free(cmd);
 }

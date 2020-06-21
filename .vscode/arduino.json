@@ -1,4 +1,6 @@
 {
-    "board": "arduino:avr:nano",
-    "configuration": "cpu=atmega328"
+    "board": "arduino:avr:uno",
+    "port": "COM3",
+    "programmer": "ArduinoISP",
+    "sketch": "NanoleafDIY.ino"
 }

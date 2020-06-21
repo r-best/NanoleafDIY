@@ -8,17 +8,22 @@
                 "C:/Program Files (x86)/Arduino/tools/**",
                 "C:/Program Files (x86)/Arduino/hardware/tools/avr/**",
                 "C:/Program Files (x86)/Arduino/hardware/arduino/avr/**",
-                "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.26.28801/include"
+                "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.26.28801/include",
+                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
+                "C:\\Program Files (x86)\\Arduino\\tools\\**"
             ],
             "forcedInclude": [
-                "C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino/Arduino.h"
+                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h"
             ],
             "intelliSenseMode": "msvc-x64",
             "defines": [
                 "USBCON"
             ],
             "cStandard": "c11",
-            "cppStandard": "c++17"
+            "cppStandard": "c++17",
+            "compilerArgs": [
+                "-Wno-pmf-conversions"
+            ]
         }
     ],
     "version": 4
