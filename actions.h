@@ -1,8 +1,8 @@
-#include <time.h>
 #include <string.h>
 #include <inttypes.h>
 
 #include "led.h"
+#include "utils.h"
 #include "constants.h"
 
 
@@ -19,20 +19,13 @@ const char* get_version(){
  */
 boolean _request_discover(uint8_t port){
     if(PORTS[port] != &Serial) ((SoftwareSerial*)PORTS[port])->listen();
-    PORTS[port]->print("discover");
-    time_t start, now;
-    time(&start);
-    do {
-        char* resp;
-        int i = 0;
-        while(PORTS[port]->available() > 0){
-            resp[i] = PORTS[port]->read();
-            i++;
-        }
-        if(strcmp(resp, "Acknowledged!") == 0)
-            return true;
-        time(&now);
-    } while(difftime(now, start) < DISCOVERY_HANDSHAKE_TIMEOUT);
+    PORTS[port]->println("discover");
+    char *resp = readSerial(port, DISCOVERY_HANDSHAKE_TIMEOUT);
+    if(strcmp(resp, "Acknowledged!") == 0){
+        free(resp);
+        return true;
+    }
+    free(resp);
     return false;
 }
 
@@ -41,16 +34,7 @@ boolean _request_discover(uint8_t port){
  */
 void _receive_discover(uint8_t port, char** tree){
     if(PORTS[port] != &Serial) ((SoftwareSerial*)PORTS[port])->listen();
-    time_t start, now;
-    time(&start);
-    do {
-        int i = 0;
-        while(PORTS[port]->available() > 0){
-            *tree[i] = PORTS[port]->read();
-            i++;
-        }
-        time(&now);
-    } while(difftime(now, start) < DISCOVERY_RESPONSE_TIMEOUT);
+    char *resp = readSerial(port, DISCOVERY_RESPONSE_TIMEOUT);
 }
 
 /**
@@ -61,7 +45,7 @@ void _receive_discover(uint8_t port, char** tree){
  */
 const char* discover_network(uint8_t port){
     // Let requesting panel know we heard
-    PORTS[port]->print("Acknowledged!");
+    PORTS[port]->println("Acknowledged!");
 
     uint8_t left, right;
     if      (port == 0) { left = 1; right = 2; }
@@ -70,17 +54,25 @@ const char* discover_network(uint8_t port){
 
     // Ask left port to discover, see if it replies
     boolean left_active = _request_discover(left);
-    
+    Serial.println(left_active);
+
     // Ask right port to discover, see if it replies
-    boolean right_active = _request_discover(right);
+    // boolean right_active = _request_discover(right);
+    // Serial.println(right_active);
 
     char* left_tree;
-    if(left_active) _receive_discover(left, &left_tree);
+    // if(left_active) _receive_discover(left, &left_tree);
 
     char* right_tree;
-    if(right_tree) _receive_discover(right, &right_tree);
+    // if(right_tree) _receive_discover(right, &right_tree);
 
     // Construct tree string
+    // char* tree;
+    // sprintf(tree, "(%s%s)",
+    //     left_active ? left_tree : "X",
+    //     right_active ? right_tree : "X"
+    // );
+    // PORTS[port]->println(tree);
     
     // Set color to green
 }
