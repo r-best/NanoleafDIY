@@ -35,7 +35,7 @@ void loop() {
  * the corresponding action
  */
 void processMessage(uint8_t port){
-    char *cmd = readSerial(port, 10);
+    char *cmd = readSerial(port, -1);
 
     const char *token = strtok(cmd, " ");
 

@@ -25,10 +25,10 @@ Stream* PORTS[3] = {
 };
 
 
-// Number of seconds the network discovery algorithm will
+// Number of milliseconds the network discovery algorithm will
 // wait for a neighbor to acknowledge the request
-int DISCOVERY_HANDSHAKE_TIMEOUT = 1;
-int DISCOVERY_RESPONSE_TIMEOUT = 10;
+int DISCOVERY_HANDSHAKE_TIMEOUT = 1000;
+int DISCOVERY_RESPONSE_TIMEOUT = 10000;
 
 uint8_t COMMAND_BUFFER_SIZE = 250;
 uint32_t command_buf_mult = 1;
