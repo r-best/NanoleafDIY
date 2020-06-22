@@ -41,13 +41,14 @@ void processMessage(uint8_t port){
 
     const char *token = strtok(cmd, " ");
 
-    if(strcmp(token, "version") == 0)           PORTS[port]->println(get_version());
-    else if(strcmp(token, "discover") == 0){
+    if(strcmp(token, "discover") == 0){
         char* temp = discover_network(port);
         PORTS[port]->println(temp);
         free(temp);
     }
+    else if(strcmp(token, "fwd") == 0)          PORTS[port]->println(forward_cmd(port, &cmd));
     else if(strcmp(token, "set_color") == 0)    PORTS[port]->println(set_color());
+    else if(strcmp(token, "version") == 0)      PORTS[port]->println(get_version());
     else                                        PORTS[port]->println(ERR_INVALID_COMMAND);
 
     free(cmd);
