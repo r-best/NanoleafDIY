@@ -43,7 +43,7 @@ void _receive_discover(uint8_t port, char** tree){
  * will check with both of its neighbors, etc..,
  * until the network is fully mapped
  */
-const char* discover_network(uint8_t port){
+char* discover_network(uint8_t port){
     // Let requesting panel know we heard
     PORTS[port]->println("Acknowledged!");
 
@@ -80,7 +80,7 @@ const char* discover_network(uint8_t port){
     free(right_tree);
     
     // Set color to green to show discovery has completed
-    set_solid(0, 50, 0);
+    set_solid(0, 10, 0);
 
     return tree;
 }
