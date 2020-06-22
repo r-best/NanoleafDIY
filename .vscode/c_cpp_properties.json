@@ -10,7 +10,8 @@
                 "C:/Program Files (x86)/Arduino/hardware/arduino/avr/**",
                 "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.26.28801/include",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
-                "C:\\Program Files (x86)\\Arduino\\tools\\**"
+                "C:\\Program Files (x86)\\Arduino\\tools\\**",
+                "C:\\Users\\Bobby\\Documents\\Arduino\\libraries\\**"
             ],
             "forcedInclude": [
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h"

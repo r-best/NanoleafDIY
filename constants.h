@@ -33,6 +33,9 @@ int DISCOVERY_RESPONSE_TIMEOUT = 10000;
 uint8_t COMMAND_BUFFER_SIZE = 250;
 uint32_t command_buf_mult = 1;
 
+uint8_t NUM_LEDS = 5;
+byte LED_DATA_PIN = 6;
+
 // Response message constants
 const char* SUCCESS = "Success";
 const char* ERR_INVALID_COMMAND = "Invalid command";

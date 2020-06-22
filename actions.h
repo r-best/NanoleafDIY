@@ -79,8 +79,8 @@ const char* discover_network(uint8_t port){
     strcat(tree, ")");
     free(right_tree);
     
-    // Set color to green
-    // set_solid(0, 255, 0);
+    // Set color to green to show discovery has completed
+    set_solid(0, 50, 0);
 
     return tree;
 }
@@ -96,6 +96,6 @@ const char* set_color(){
 
         colors[i] = color;
     }
-    // set_solid(colors);
+    set_solid(colors[0], colors[1], colors[2]);
     return SUCCESS;
 }

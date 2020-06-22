@@ -12,6 +12,8 @@ void setup() {
     port2.begin(9600);
     port3.begin(9600);
 
+    leds.begin();
+
     Serial.println("Ready!");
 }
 
