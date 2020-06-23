@@ -1,10 +1,21 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <SoftwareSerial.h>
+
 #include "utils.h"
 #include "actions.h"
 #include "constants.h"
 
+
+// Establish ports (first is Serial, other two
+// are SoftwareSerials on pins 2/3 and 4/5)
+SoftwareSerial port2(2, 3), port3(4, 5);
+Stream* PORTS[3] = {
+    &Serial,
+    &port2,
+    &port3
+};
 
 void setup() {
     Serial.begin(9600);

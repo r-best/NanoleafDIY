@@ -4,9 +4,8 @@
 #ifndef LED_H
 #define LED_H
 
-#include <stdint.h>
-
 #include <Adafruit_NeoPixel.h>
+
 
 Adafruit_NeoPixel leds(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
 uint8_t ar=0, ag=0, ab=0;

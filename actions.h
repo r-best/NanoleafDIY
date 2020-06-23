@@ -1,3 +1,13 @@
+/**
+ * This file contains the implementations of the actions the panel can take
+ * upon receiving different commands, as defined in the main file
+ * 
+ * Commands:
+ *  - `fwd`: Forwards another command to a panel further down the tree
+ *  - `discover`: Maps the tree structure of all panels to the left and right, returning it to the caller
+ *  - `get_version`: Returns the version of the software
+ *  - `set_color`: Sets all the LEDs to the given RGB value
+ */
 #include <string.h>
 #include <inttypes.h>
 
@@ -6,6 +16,9 @@
 #include "constants.h"
 
 
+/**
+ * This command returns the version of the software running on the device
+ */
 const char* get_version(){
     return VERSION;
 }

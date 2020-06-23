@@ -1,9 +1,11 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-
 #include "constants.h"
 
+
+// Define the panel's ports (initialized in the main file)
+extern Stream* PORTS[3];
 
 /**
  * Reads a line from the given serial port, up until either the first "\n"
@@ -15,6 +17,7 @@
  */
 char* readSerial(uint8_t port, int timeout) {
     char *line = (char*)malloc(sizeof(char)*COMMAND_BUFFER_SIZE);
+    uint32_t command_buf_mult = 1;
     unsigned long start, now;
     start = millis();
     int i = 0;
