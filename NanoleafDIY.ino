@@ -24,6 +24,7 @@ void setup() {
     port3.begin(9600);
 
     leds.begin();
+    leds.setBrightness(2);
 
     Serial.println("Ready!");
 }
@@ -33,6 +34,8 @@ void setup() {
  * in sequence, acting on any it finds
  */
 void loop() {
+    update_leds();
+
     if(Serial.available() > 0) processMessage(0);
 
     port2.listen();
@@ -59,6 +62,8 @@ void processMessage(uint8_t port){
     }
     else if(strcmp(token, "fwd") == 0)          PORTS[port]->println(forward_cmd(port, &cmd));
     else if(strcmp(token, "set_color") == 0)    PORTS[port]->println(set_color());
+    else if(strcmp(token, "set_pattern") == 0)  PORTS[port]->println(set_pattern());
+    else if(strcmp(token, "set_speed") == 0)    PORTS[port]->println(set_speed());
     else if(strcmp(token, "version") == 0)      PORTS[port]->println(get_version());
     else                                        PORTS[port]->println(ERR_INVALID_COMMAND);
 

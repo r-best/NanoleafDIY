@@ -60,7 +60,7 @@ const char* forward_cmd(uint8_t port, char** cmd){
 
     PORTS[target_port]->println(*cmd);
 
-    return SUCCESS;
+    return MSG_SUCCESS;
 }
 
 /**
@@ -164,5 +164,37 @@ const char* set_color(){
         colors[i] = color;
     }
     set_solid(colors[0], colors[1], colors[2]);
-    return SUCCESS;
+    return MSG_SUCCESS;
+}
+
+/**
+ * Sets the LED strip to the given predefined pattern
+ * Command format: `set_mode <mode>`
+ *  Where mode is a number corresponding to a predefined mode
+ */
+const char* set_pattern(){
+    char *temp = strtok(NULL, " ");
+    if(temp == NULL) return ERR_INVALID_ARGS;
+
+    int mode = atoi(temp);
+    if(mode < 0 || mode > 255) return ERR_INVALID_ARGS;
+
+    set_mode(mode);
+    return MSG_SUCCESS;
+}
+
+/**
+ * Sets the ms delay used in updating the LED pattern
+ * Command format: `set_speed <speed>`
+ *  Where speed is the number of ms to delay LED pattern updates
+ */
+const char* set_speed(){
+    char *temp = strtok(NULL, " ");
+    if(temp == NULL) return ERR_INVALID_ARGS;
+
+    int speed = atoi(temp);
+    if(speed < 0 || speed > 255) return ERR_INVALID_ARGS;
+
+    set_speed(speed);
+    return MSG_SUCCESS;
 }
