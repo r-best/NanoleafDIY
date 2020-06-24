@@ -18,13 +18,13 @@ Stream* PORTS[3] = {
 };
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(115200);
     while(!Serial){;}
-    port2.begin(9600);
-    port3.begin(9600);
+    port2.begin(115200);
+    port3.begin(115200);
 
     leds.begin();
-    leds.setBrightness(2);
+    leds.setBrightness(25);
 
     Serial.println("Ready!");
 }

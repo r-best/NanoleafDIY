@@ -195,6 +195,6 @@ const char* set_speed(){
     int speed = atoi(temp);
     if(speed < 0 || speed > 255) return ERR_INVALID_ARGS;
 
-    set_speed(speed);
+    set_update_rate(speed);
     return MSG_SUCCESS;
 }
