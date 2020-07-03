@@ -10,8 +10,8 @@
 #include "constants.h"
 
 
-const char* WIFI_SSID = "***REMOVED***";
-const char* WIFI_PASS = "***REMOVED***";
+const char* WIFI_SSID = "";
+const char* WIFI_PASS = "";
 
 ESP8266WebServer server(80);
 
