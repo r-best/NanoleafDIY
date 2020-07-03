@@ -4,18 +4,18 @@
             "name": "Win32",
             "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.26.28801/bin/Hostx64/x64/cl.exe",
             "includePath": [
+                "C:/Users/Bobby/AppData/Local/Arduino15/packages/esp8266/tools/**",
+                "C:/Users/Bobby/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/2.7.1/**",
                 "${workspaceFolder}/**",
                 "C:/Program Files (x86)/Arduino/tools/**",
                 "C:/Program Files (x86)/Arduino/hardware/tools/avr/**",
                 "C:/Program Files (x86)/Arduino/hardware/arduino/avr/**",
                 "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.26.28801/include",
-                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
-                "C:\\Program Files (x86)\\Arduino\\tools\\**",
-                "C:\\Users\\Bobby\\Documents\\Arduino\\libraries\\**"
+                "C:/Program Files (x86)/Arduino/hardware/arduino/avr/**",
+                "C:/Program Files (x86)/Arduino/tools/**",
+                "C:/Users/Bobby/Documents/Arduino/libraries/**"
             ],
-            "forcedInclude": [
-                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h"
-            ],
+            "forcedInclude": [],
             "intelliSenseMode": "msvc-x64",
             "defines": [
                 "USBCON"
