@@ -21,6 +21,30 @@ MDNSResponder* mdns;
 void setup() {
     Serial.begin(115200);
     while(!Serial){;}
+    Serial.println("Starting up");
+
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
+
+    Serial.print("Connecting");
+    while (WiFi.status() != WL_CONNECTED){
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.println();
+
+    Serial.print("Connected, IP address: ");
+    Serial.println(WiFi.localIP());
+
+    if(!MDNS.begin("lightpanels")){
+        Serial.println("ERROR");
+    }
+
+    server.on("/", [](){ server.send(200, "text/plain", "OK"); });
+    server.on("/network", [](){
+        char* response = build_response(tree_encoding);
+        server.send(200, "application/json", response);
+        free(response);
+    });
 
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     WiFi.config(IPAddress(192,168,0,231), IPAddress(192,168,0,1), IPAddress(255,255,255,0));
