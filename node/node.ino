@@ -26,7 +26,7 @@ void setup() {
     leds.begin();
     leds.setBrightness(25);
 
-    Serial.println("Ready!");
+    // Serial.println("Ready!");
 }
 
 /**
