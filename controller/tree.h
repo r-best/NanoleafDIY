@@ -1,3 +1,12 @@
+/**
+ * UNUSED LOGIC FOR PARSING THE TREE STRUCTURE FROM THE tree_encoding
+ * Replicated this logic in the app instead, it's needed there to display
+ * the panel configuration on the UI
+ * I'm keeping this logic here for now in case I need it, but it's better
+ * to just send the encoded string to the app instead
+ * 
+ * Phones have more memory than they could hope to use anyway
+ */
 #ifndef TREE_H
 #define TREE_H
 
