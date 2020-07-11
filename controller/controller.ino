@@ -7,34 +7,25 @@
 #include <ESP8266mDNS.h>
 #include <ArduinoJson.h>
 
-#include "utils.h"
+#include "routes.h"
+#include "config.h"
 #include "constants.h"
 
 
-const char* WIFI_SSID = "";
-const char* WIFI_PASS = "";
-
-const boolean DEBUG = true;
-SoftwareSerial debugSerial(6,7);
-struct {
-    void print(const char* msg)         { if(DEBUG) debugSerial.print(msg);     }
-    void println(void)                  { if(DEBUG) debugSerial.println();      }
-    void println(const char* msg)       { if(DEBUG) debugSerial.println(msg);   }
-    void println(const Printable& x)    { if(DEBUG) debugSerial.print(x);       }
-} Log;
-
-ESP8266WebServer server(80);
 MDNSResponder* mdns;
 
 void setup() {
+    // Initialize serial
     Serial.begin(115200);
     while(!Serial){;}
+    Log.begin();
     Log.println("Starting up");
 
+    // Connect to WiFi network defined in "config.h"
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     WiFi.config(IPAddress(192,168,0,231), IPAddress(192,168,0,1), IPAddress(255,255,255,0));
 
-    Log.print("Connecting");
+    Log.print("Connecting to WiFi");
     while (WiFi.status() != WL_CONNECTED){
         delay(500);
         Log.print(".");
@@ -44,19 +35,20 @@ void setup() {
     Log.print("Connected, IP address: ");
     Log.println(WiFi.localIP());
 
+    // Start MDNS, even though it's pointless because Android won't recognize it :(
     mdns = new MDNSResponder();
-    if(!mdns->begin("lightpanels", WiFi.localIP())){
-        Log.println("ERROR");
-    }
+    if(!mdns->begin("lightpanels", WiFi.localIP()))
+        Log.println("Error starting MDNS");
 
+    // Establish server routes
     server.onNotFound([](){ server.send(404); });
-    server.on("/", [](){ server.send(200); });
-    server.on("/network", [](){
-        char* tree = discover_network();
-        send_response(200, tree);
-        free(tree);
+    server.on("/", [](){
+        Log.println("Incoming request: Health Check");
+        server.send(200);
     });
+    server.on("/network", discover_network);
     server.on("/panels/color", HTTP_POST, [](){
+        Log.println("Incoming request: Set Panel Color");
         StaticJsonDocument<500> data;
         DeserializationError err = deserializeJson(data, server.arg("plain"));
         
@@ -71,17 +63,11 @@ void setup() {
             data["g"].as<String>().c_str(),
             data["b"].as<String>().c_str());
         send_command(data["directions"].as<String>().c_str(), cmd);
-        send_response(200, "Success");
+        server.send(200);
     });
 
     server.begin();
     mdns->addService("http", "tcp", 80);
-
-    // Wait one second to make sure all connected panels come online
-    delay(1000);
-
-    // Discover all connected panels
-    // discover_network();
 }
 
 /**
@@ -92,7 +78,11 @@ void loop() {
     server.handleClient();
 }
 
-void send_response(int code, char* data){
+/**
+ * Helper method to send an HTTP response to the client with
+ * the given status code and data
+ */
+void send_response(int code, const char* data){
     char* response = (char*)malloc(strlen(data) + 15);
     strcpy(response, code == 200 ? "{ \"data\": \"" : "{ \"err\": \"");
     strcat(response, data);
@@ -101,38 +91,27 @@ void send_response(int code, char* data){
     free(response);
 }
 
+/**
+ * Sends a command to the desired panel
+ * If no directions are present, the command is sent as-is to
+ * the first panel
+ * Otherwise, the command is prefixed with "fwd" and the given
+ * directions, which tells the first panel to forward the command
+ * to the next panel in the directions list, which then forwards
+ * it to the next panel, etc.. until no directions are left
+ */
 void send_command(const char* directions, char* cmd){
-    // If we have directions, we need to append the forward command with them
+    // If we have directions, we need to use the forward command
     if(strcmp(directions, "") != 0){
         char* fwdCmd = (char*)malloc(strlen(cmd) + strlen(directions) + 4);
         sprintf(fwdCmd, "fwd %s %s", directions, cmd);
+        Log.print("Sending command: ");Log.println(fwdCmd);
         Serial.println(fwdCmd);
         free(fwdCmd);
     }
     // Else this is intended for the first panel, so no need for forwarding
-    else Serial.println(cmd);
-}
-
-char* discover_network_DEBUG(){
-    const char* input = "(((XX)X)(X((XX)X)))";
-    char* tree = (char*)malloc(strlen(input));
-    strcpy(tree, input);
-    return tree;
-}
-
-char* discover_network(){
-    // Send discovery command
-    Serial.println("discover");
-
-    // Read characters until we get a full message and check
-    // if it's the acknowledgement
-    char *resp = readSerial(DISCOVERY_HANDSHAKE_TIMEOUT);
-    if(strcmp(resp, "Acknowledged!") != 0){
-        free(resp);
-        return NULL;
+    else{
+        Log.print("Sending command: ");Log.println(cmd);
+        Serial.println(cmd);
     }
-    free(resp);
-
-    // After discovery acknowledgement, wait for response with full network tree
-    return readSerial(DISCOVERY_RESPONSE_TIMEOUT);
 }

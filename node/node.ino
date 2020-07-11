@@ -8,6 +8,9 @@
 #include "constants.h"
 
 
+// TODO BUGFIX: That thing where it writes "TestingOpen" on startup and it gets accepted as an invalid command
+// Causes the first network discovery request to fail
+
 // Establish ports (first is Serial, other two
 // are SoftwareSerials on pins 2/3 and 4/5)
 SoftwareSerial port2(2, 3), port3(4, 5);

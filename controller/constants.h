@@ -21,7 +21,8 @@ const uint8_t COMMAND_BUFFER_SIZE = 250;
 
 // Response message constants
 const char* MSG_SUCCESS = "MSG_SUCCESS";
-const char* ERR_INVALID_COMMAND = "Invalid command";
-const char* ERR_INVALID_ARGS = "Command arguments were invalid";
+const char* ERR_NO_PANELS_CONNECTED = "No panels are connected to the controller";
+const char* ERR_READ_TIMEOUT = "Read timed out";
+const char* ERR_NON_ACKNOWLEDGEMENT = "Non-acknowledgement received for network discovery";
 
 #endif
