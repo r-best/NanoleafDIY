@@ -101,6 +101,8 @@ void _receive_discover(uint8_t port, char** tree){
  *   M*O -- O -- O    ------->      (((XX)(XX))(XX))
  *     |
  *     O
+ * 
+ * TODO: Algorithm is failing in scenarios with an empty left child (i.e. "...X(...")
  */
 char* discover_network(uint8_t port){
     // Let requesting panel know we heard
@@ -169,17 +171,17 @@ const char* set_color(){
 
 /**
  * Sets the LED strip to the given predefined pattern
- * Command format: `set_mode <mode>`
- *  Where mode is a number corresponding to a predefined mode
+ * Command format: `set_pattern <pattern>`
+ *  Where pattern is a number corresponding to a predefined pattern
  */
 const char* set_pattern(){
     char *temp = strtok(NULL, " ");
     if(temp == NULL) return ERR_INVALID_ARGS;
 
-    int mode = atoi(temp);
-    if(mode < 0 || mode > 255) return ERR_INVALID_ARGS;
+    int pattern = atoi(temp);
+    if(pattern < 0 || pattern > 255) return ERR_INVALID_ARGS;
 
-    set_mode(mode);
+    set_mode(pattern);
     return MSG_SUCCESS;
 }
 
@@ -195,6 +197,6 @@ const char* set_speed(){
     int speed = atoi(temp);
     if(speed < 0 || speed > 255) return ERR_INVALID_ARGS;
 
-    set_update_rate(speed);
+    set_refresh_rate(speed);
     return MSG_SUCCESS;
 }

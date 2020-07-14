@@ -6,96 +6,61 @@
 
 #include <Adafruit_NeoPixel.h>
 
+#include "led_patterns.h"
+
 
 Adafruit_NeoPixel leds(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
-boolean do_led_update = true;
 
+// True if a pattern is being displayed, i.e. we need to continuously update leds
+// False if we're just displaying a solid color, i.e. no updates
+boolean running_pattern = true;
+// Index of the currently selected builtin pattern
 uint8_t current_mode = 0;
-int update_rate = 10;
+int refresh_rate = 10;
 unsigned long timer;
 
-/**
- * Applies a rainbow effect scrolling across the LEDs
- * 
- * Adapted from Adafruit Neopixel library examples
- * https://github.com/adafruit/Adafruit_NeoPixel/blob/master/examples/buttoncycler/buttoncycler.ino
- */
-unsigned short hue = 0;
-void rainbow() {
-    // Offset each LED from the current hue by the full color wheel size / NUM_LEDS
-    // This results in all the colors of the wheel being spaced across the LEDs
-    for(int i=0; i<NUM_LEDS; i++) 
-        leds.setPixelColor(i,
-            leds.gamma32(leds.ColorHSV(
-                hue + (i * 65536L / NUM_LEDS)
-            ))
-        );
-    hue += 256;
-    leds.show();
-}
-
-/**
- * 
- * 
- * Adapted from Adafruit Neopixel library examples
- * https://github.com/adafruit/Adafruit_NeoPixel/blob/master/examples/buttoncycler/buttoncycler.ino
- */
-int offset = 0;
-void theaterChase() {
-    leds.clear();
-    for(int i = offset; i < leds.numPixels(); i += 3)
-        leds.setPixelColor(i, leds.Color(255, 255, 255));
-    offset < 2 ? offset++ : offset = 0;
-    leds.show();
-}
-
-/**
- * Adapted from Adafruit Neopixel library examples
- * https://github.com/adafruit/Adafruit_NeoPixel/blob/master/examples/buttoncycler/buttoncycler.ino
- */
-void theaterChaseRainbow() {
-    leds.clear();
-    for(int i = offset; i < leds.numPixels(); i += 3)
-        leds.setPixelColor(i, 
-            leds.gamma32(leds.ColorHSV(
-                hue + i * 65536L / NUM_LEDS
-            ))
-        );
-    offset < 2 ? offset++ : offset = 0;
-    hue += 65536 / 90;
-    leds.show();
-}
-
-void(*MODES[])(void) = {
-    &rainbow,
-    &theaterChase,
-    &theaterChaseRainbow
+/** List of predefined color patterns, implementations in `led_patterns.h` */
+Pattern MODES[] = {
+    CustomGradient, // Custom color gradient pattern
+    Rainbow,
+    TheaterChase,
+    TheaterChaseRainbow
 };
 
-int update_leds(){
-    if(do_led_update && millis() - timer >= update_rate){
-        MODES[current_mode]();
+/** Updates the LEDs according to the active pattern, called in arduino loop */
+void update_leds(){
+    // Only perform an update if we're running a pattern and the
+    // correct amount of time has passed since the last update
+    if(running_pattern && millis() - timer >= refresh_rate){
+        MODES[current_mode].update();
+        leds.show();
         timer = millis();
     }
-    return 0;
 }
 
+/**
+ * Sets the panel to one solid color,
+ * disabling any active pattern
+ */
 int set_solid(uint8_t r, uint8_t g, uint8_t b){
-    do_led_update = false;
+    running_pattern = false;
     leds.fill(leds.Color(r, g, b));
     leds.show();
     return 0;
 }
 
+/**
+ * Sets the current pattern to
+ * be displayed on the panel
+ */
 int set_mode(uint8_t mode){
-    do_led_update = true;
+    running_pattern = true;
+    MODES[mode].init();
     current_mode = mode;
     return 0;
 }
 
-int set_update_rate(uint8_t s){
-    update_rate = s;
-    return 0;
-}
+/** Adjusts how often (in ms) the LEDs are updated */
+void set_refresh_rate(uint8_t ms){ refresh_rate = ms; }
 
 #endif
