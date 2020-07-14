@@ -21,11 +21,14 @@ unsigned long timer;
 
 /** List of predefined color patterns, implementations in `led_patterns.h` */
 Pattern MODES[] = {
-    CustomGradient, // Custom color gradient pattern
+    CustomGradient,
     Rainbow,
     TheaterChase,
     TheaterChaseRainbow
 };
+
+/** Adjusts how often (in ms) the LEDs are updated */
+void set_refresh_rate(uint8_t ms){ refresh_rate = ms; }
 
 /** Updates the LEDs according to the active pattern, called in arduino loop */
 void update_leds(){
@@ -39,19 +42,8 @@ void update_leds(){
 }
 
 /**
- * Sets the panel to one solid color,
- * disabling any active pattern
- */
-int set_solid(uint8_t r, uint8_t g, uint8_t b){
-    running_pattern = false;
-    leds.fill(leds.Color(r, g, b));
-    leds.show();
-    return 0;
-}
-
-/**
- * Sets the current pattern to
- * be displayed on the panel
+ * Sets the current pattern to be displayed on the panel
+ * `mode` must be a valid index of the `MODES` array
  */
 int set_mode(uint8_t mode){
     running_pattern = true;
@@ -60,7 +52,25 @@ int set_mode(uint8_t mode){
     return 0;
 }
 
-/** Adjusts how often (in ms) the LEDs are updated */
-void set_refresh_rate(uint8_t ms){ refresh_rate = ms; }
+/**
+ * Updates the stored custom gradient with the given parameters
+ * 
+ */
+int set_custom_gradient(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uint32_t *transitions){
+    CustomGradient.destroy();
+    CustomGradient.length = length;
+    CustomGradient.r = r;
+    CustomGradient.g = g;
+    CustomGradient.b = b;
+    CustomGradient.transitions = transitions;
+}
+
+/** Sets the panel to one solid color, disabling any active pattern */
+int set_solid(uint8_t r, uint8_t g, uint8_t b){
+    running_pattern = false;
+    leds.fill(leds.Color(r, g, b));
+    leds.show();
+    return 0;
+}
 
 #endif

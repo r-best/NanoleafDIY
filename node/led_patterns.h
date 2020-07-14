@@ -15,8 +15,26 @@ class Pattern {
  * 
  */
 class CustomGradient: public Pattern {
-    uint8_t *r;
+    // Tracks current time in gradient
+    unsigned long last_update;
     public:
+        // The number of steps in the gradient
+        uint8_t length;
+        // Steps in color gradient, i.e. r[0] b[0] g[0] represents the starting color
+        uint8_t *r = malloc(sizeof(uint8_t));
+        uint8_t *g = malloc(sizeof(uint8_t));
+        uint8_t *b = malloc(sizeof(uint8_t));
+        // Time between each color step, i.e. transitions[0] is
+        // the transisiton time from step 0 to step 1
+        uint32_t *transitions = malloc(sizeof(uint32_t));
+
+        void destroy() {
+            free(r);
+            free(g);
+            free(b);
+            free(transitions);
+        }
+
         void init() override {
 
         }
