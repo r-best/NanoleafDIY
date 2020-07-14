@@ -26,39 +26,33 @@ const char* get_version(){
 /**
  * This command is used to send other commands to specific nodes in the tree by
  * forwarding them along a path through the connecting nodes
- * Command format: `fwd <directions> <command>`
+ * Command format: `0<directions>|<command>`
+ *  0 is the forward command, it's dropped when the command is passed into this function,
+ *      so the `data` string starts with the first direction
  *  <directions> is a string of L's and R's, dictating which direction to turn
  *      at each node in the tree. When a node receives this command it pops the
  *      first character from the string, and forwards the request in that direction
  *  <command> is the command to be executed by the target node, can be any other valid command
  */
-const char* forward_cmd(uint8_t port, char** cmd){
+const char* forward_cmd(uint8_t port, char* data){
     // Get left and right port relative to request origin
     uint8_t left, right;
     if      (port == 0) { left = 1; right = 2; }
     else if (port == 1) { left = 2; right = 0; }
     else if (port == 2) { left = 0; right = 1; }
 
-    // Pop the first direction off the list to decide where to forward the message ('L' or 'R')
+    // Reads the first direction in the list to decide where to forward the message ('L' or 'R')
     uint8_t target_port;
-    char* directions = strtok(NULL, " ");
-    if(directions[0] == 'L') target_port = left;
-    else if(directions[0] == 'R')   target_port = right;
-    else return ERR_INVALID_ARGS;
+    if(data[0] == 'L')  target_port = left;
+    else                target_port = right;
 
-    // If there's only one direction left, we'll send the actual command instead of another forward
-    if(strlen(directions) == 1){
-        strcpy(*cmd, directions+2);
+    // If this is the last direction, we'll send the actual command instead of another forward
+    if(data[1] == '|'){
+        PORTS[target_port]->println(data+2);
     } else {
-        // Undo the string terminators (\0) inserted by strtok
-        (*cmd)[3] = ' ';
-        directions[strlen(directions)] = ' ';
-
-        // Remove the direction we just used
-        strcpy(directions, directions+1);
+        data[0] = '0'; // Replace the used direction with the forward command for the next panel to read
+        PORTS[target_port]->println(data);
     }
-
-    PORTS[target_port]->println(*cmd);
 
     return MSG_SUCCESS;
 }
@@ -67,8 +61,11 @@ const char* forward_cmd(uint8_t port, char** cmd){
  * 
  */
 boolean _request_discover(uint8_t port){
+    // Send discovery command to given port
     if(PORTS[port] != &Serial) ((SoftwareSerial*)PORTS[port])->listen();
-    PORTS[port]->println("discover");
+    PORTS[port]->println("1");
+
+    // Wait for acknowledgement
     char *resp = readSerial(port, DISCOVERY_HANDSHAKE_TIMEOUT);
     if(strcmp(resp, "Acknowledged!") == 0){
         free(resp);
@@ -101,8 +98,6 @@ void _receive_discover(uint8_t port, char** tree){
  *   M*O -- O -- O    ------->      (((XX)(XX))(XX))
  *     |
  *     O
- * 
- * TODO: Algorithm is failing in scenarios with an empty left child (i.e. "...X(...")
  */
 char* discover_network(uint8_t port){
     // Let requesting panel know we heard
@@ -151,19 +146,17 @@ char* discover_network(uint8_t port){
 
 /**
  * Sets all of the LEDs to the given color
- * Command format: `set_color <r> <g> <b>`
- *  Where r, g, and b are the respective red, green, and blue values
+ * Command format: `2#<hex value>`
+ *  Where 'hex value' is the desired hexadecimal color code
  */
-const char* set_color(){
+const char* set_color(char* data){
     uint8_t colors[3] = {0, 0, 0};
     for(int i = 0; i < 3; i++){
-        char *temp = strtok(NULL, " ");
-        if(temp == NULL) return ERR_INVALID_ARGS;
+        char temp[3] = { data[i*2], data[i*2+1], '\0' };
+        colors[i] = strtol(temp, NULL, 16);
 
-        int color = atoi(temp);
-        if(color < 0 || color > 255) return ERR_INVALID_ARGS;
-
-        colors[i] = color;
+        if(colors[i] < 0 || colors[i] > 255)
+            return ERR_INVALID_ARGS;
     }
     set_solid(colors[0], colors[1], colors[2]);
     return MSG_SUCCESS;
@@ -171,14 +164,11 @@ const char* set_color(){
 
 /**
  * Sets the LED strip to the given predefined pattern
- * Command format: `set_pattern <pattern>`
+ * Command format: `3<pattern>`
  *  Where pattern is a number corresponding to a predefined pattern
  */
-const char* set_pattern(){
-    char *temp = strtok(NULL, " ");
-    if(temp == NULL) return ERR_INVALID_ARGS;
-
-    int pattern = atoi(temp);
+const char* set_pattern(char* data){
+    int pattern = atoi(data);
     if(pattern < 0 || pattern > 255) return ERR_INVALID_ARGS;
 
     set_mode(pattern);
@@ -187,14 +177,11 @@ const char* set_pattern(){
 
 /**
  * Sets the ms delay used in updating the LED pattern
- * Command format: `set_speed <speed>`
+ * Command format: `4<speed>`
  *  Where speed is the number of ms to delay LED pattern updates
  */
-const char* set_speed(){
-    char *temp = strtok(NULL, " ");
-    if(temp == NULL) return ERR_INVALID_ARGS;
-
-    int speed = atoi(temp);
+const char* set_speed(char* data){
+    int speed = atoi(data);
     if(speed < 0 || speed > 255) return ERR_INVALID_ARGS;
 
     set_refresh_rate(speed);

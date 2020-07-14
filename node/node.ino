@@ -56,17 +56,26 @@ void processMessage(uint8_t port){
 
     const char *token = strtok(cmd, " ");
 
-    if(strcmp(token, "discover") == 0){
-        char* temp = discover_network(port);
-        PORTS[port]->println(temp);
-        free(temp);
+    switch(cmd[0]){
+        case '0': // Forwarding command
+            forward_cmd(port, cmd+1);
+            break;
+        case '1': // Network discovery command
+            char* temp = discover_network(port);
+            PORTS[port]->println(temp);
+            free(temp);
+            break;
+        case '2': // Set color command
+            PORTS[port]->println(set_color(cmd+2)); break;
+        case '3': // Set pattern command
+            PORTS[port]->println(set_pattern(cmd+1)); break;
+        case '4': // Set refresh rate command
+            PORTS[port]->println(set_speed(cmd+1)); break;
+        case '5': // Get version command
+            PORTS[port]->println(get_version()); break;
+        default:
+            PORTS[port]->println(ERR_INVALID_COMMAND); break;
     }
-    else if(strcmp(token, "fwd") == 0)          PORTS[port]->println(forward_cmd(port, &cmd));
-    else if(strcmp(token, "set_color") == 0)    PORTS[port]->println(set_color());
-    else if(strcmp(token, "set_pattern") == 0)  PORTS[port]->println(set_pattern());
-    else if(strcmp(token, "set_speed") == 0)    PORTS[port]->println(set_speed());
-    else if(strcmp(token, "version") == 0)      PORTS[port]->println(get_version());
-    else                                        PORTS[port]->println(ERR_INVALID_COMMAND);
 
     free(cmd);
 }
