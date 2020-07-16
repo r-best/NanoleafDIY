@@ -63,8 +63,8 @@ void processMessage(uint8_t port){
             free(tree);
             break;
         }
-        case '2': // Set color command
-            PORTS[port]->println(set_color(cmd+2)); break;
+        case '2': // Set solid color command
+            PORTS[port]->println(set_color(cmd+1)); break;
         case '3': // Set pattern command
             PORTS[port]->println(set_pattern(cmd+1)); break;
         case '4': // Set refresh rate command

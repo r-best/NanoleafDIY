@@ -146,18 +146,25 @@ char* discover_network(uint8_t port){
 
 /**
  * Sets all of the LEDs to the given color
- * Command format: `2#<hex value>`
- *  Where 'hex value' is the desired hexadecimal color code
+ * Command format: `2#<hex value>` OR `2<rgb value>
+ *  'hex value' is the desired hexadecimal color code (e.x. 'FFFFFF')
+ *  'rgb value' is the desired rgb color value padded to make each number 3 digits (e.x. '255000120')
  */
 const char* set_color(char* data){
     uint8_t colors[3] = {0, 0, 0};
     for(int i = 0; i < 3; i++){
-        char temp[3] = { data[i*2], data[i*2+1], '\0' };
-        colors[i] = strtol(temp, NULL, 16);
+        if(data[0] == '#'){ // If hexcode
+            char temp[3] = { data[(i*2)+1], data[i*2+2], '\0' };
+            colors[i] = strtol(temp, NULL, 16);
+        } else { // If rgb
+            char temp[4] = { data[i*3], data[i*3+1], data[i*3+2], '\0' };
+            colors[i] = strtol(temp, NULL, 10);
+        }
 
         if(colors[i] < 0 || colors[i] > 255)
             return ERR_INVALID_ARGS;
     }
+
     set_solid(colors[0], colors[1], colors[2]);
     return MSG_SUCCESS;
 }

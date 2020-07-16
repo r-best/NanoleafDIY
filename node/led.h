@@ -29,17 +29,11 @@ void set_refresh_rate(uint8_t ms){ MODES[current_mode]->refresh_rate = ms; }
 
 void setup_leds(){
     // Create default custom gradient
-    uint8_t *tempR = (uint8_t*)malloc(sizeof(uint8_t)*2);
-    tempR[0] = 0; tempR[1] = 255;
-    uint8_t *tempG = (uint8_t*)calloc(2, sizeof(uint8_t));
-    tempG[0] = 0; tempG[1] = 147;
-    uint8_t *tempB = (uint8_t*)calloc(2, sizeof(uint8_t));
-    tempB[1] = 0; tempB[1] = 41;
-    uint32_t *tempTransitions = (uint32_t*)malloc(sizeof(uint32_t)*2);
-    tempTransitions[0] = 1000; tempTransitions[1] = 1000;
-    MODES[0] = new FadingGradient(
-        2, tempR, tempG, tempB, tempTransitions
-    );
+    uint8_t r[] = { 0, 255 };
+    uint8_t g[] = { 0, 147 };
+    uint8_t b[] = { 0, 41 };
+    uint32_t transitions[] = { 1000, 1000 };
+    MODES[0] = new FadingGradient(2, r, g, b, transitions);
 
     leds.begin();
     leds.setBrightness(25);

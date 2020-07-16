@@ -16,7 +16,10 @@ class Pattern {
 };
 
 /**
- * 
+ * Fades between defined color steps over given time intervals
+ * The color arrays r, g, and b store the desired color at each step in the gradient
+ * (i.e. r[0] b[0] g[0] represents the starting color, r[1] g[1] b[1] is the second color, etc..)
+ * and the transisitons array stores the time (in ms) it takes to fade between each step
  */
 class FadingGradient: public Pattern {
     // Tracks current time in gradient
@@ -55,10 +58,14 @@ class FadingGradient: public Pattern {
 
         FadingGradient(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uint32_t *transitions) {
             this->length = length;
-            this->r = r;
-            this->g = g;
-            this->b = b;
-            this->transitions = transitions;
+
+            uint32_t size = sizeof(uint8_t)*length;
+            this->r = (uint8_t*)malloc(size); memcpy(this->r, r, size);
+            this->g = (uint8_t*)malloc(size); memcpy(this->g, g, size);
+            this->b = (uint8_t*)malloc(size); memcpy(this->b, b, size);
+
+            this->transitions = (uint32_t*)malloc(sizeof(uint32_t)*length);
+            memcpy(this->transitions, transitions, sizeof(uint32_t)*length);
 
             this->current_step = 0;
             this->last_update = millis();
@@ -92,9 +99,6 @@ class RainbowPattern: public Pattern {
                     ))
                 );
             hue += 256;
-        }
-        RainbowPattern() {
-            this->init();
         }
 };
 
