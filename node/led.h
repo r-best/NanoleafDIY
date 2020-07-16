@@ -9,33 +9,49 @@
 #include "led_patterns.h"
 
 
-Adafruit_NeoPixel leds(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
-
 // True if a pattern is being displayed, i.e. we need to continuously update leds
 // False if we're just displaying a solid color, i.e. no updates
 boolean running_pattern = true;
 // Index of the currently selected builtin pattern
 uint8_t current_mode = 0;
-int refresh_rate = 10;
 unsigned long timer;
 
 /** List of predefined color patterns, implementations in `led_patterns.h` */
-Pattern MODES[] = {
-    CustomGradient,
-    Rainbow,
-    TheaterChase,
-    TheaterChaseRainbow
+Pattern *MODES[] = {
+    NULL, // Slot for user-defined gradient, initialized in `setup_leds()`
+    new RainbowPattern(),
+    new TheaterChase(),
+    new TheaterChaseRainbow()
 };
 
 /** Adjusts how often (in ms) the LEDs are updated */
-void set_refresh_rate(uint8_t ms){ refresh_rate = ms; }
+void set_refresh_rate(uint8_t ms){ MODES[current_mode]->refresh_rate = ms; }
+
+void setup_leds(){
+    // Create default custom gradient
+    uint8_t *tempR = (uint8_t*)malloc(sizeof(uint8_t)*2);
+    tempR[0] = 0; tempR[1] = 255;
+    uint8_t *tempG = (uint8_t*)calloc(2, sizeof(uint8_t));
+    tempG[0] = 0; tempG[1] = 147;
+    uint8_t *tempB = (uint8_t*)calloc(2, sizeof(uint8_t));
+    tempB[1] = 0; tempB[1] = 41;
+    uint32_t *tempTransitions = (uint32_t*)malloc(sizeof(uint32_t)*2);
+    tempTransitions[0] = 1000; tempTransitions[1] = 1000;
+    MODES[0] = new FadingGradient(
+        2, tempR, tempG, tempB, tempTransitions
+    );
+
+    leds.begin();
+    leds.setBrightness(25);
+    timer = millis();
+}
 
 /** Updates the LEDs according to the active pattern, called in arduino loop */
 void update_leds(){
     // Only perform an update if we're running a pattern and the
     // correct amount of time has passed since the last update
-    if(running_pattern && millis() - timer >= refresh_rate){
-        MODES[current_mode].update();
+    if(running_pattern && millis() - timer >= MODES[current_mode]->refresh_rate){
+        MODES[current_mode]->update();
         leds.show();
         timer = millis();
     }
@@ -47,22 +63,15 @@ void update_leds(){
  */
 int set_mode(uint8_t mode){
     running_pattern = true;
-    MODES[mode].init();
+    MODES[mode]->init();
     current_mode = mode;
     return 0;
 }
 
-/**
- * Updates the stored custom gradient with the given parameters
- * 
- */
+/** Updates the stored custom gradient with the given parameters */
 int set_custom_gradient(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uint32_t *transitions){
-    CustomGradient.destroy();
-    CustomGradient.length = length;
-    CustomGradient.r = r;
-    CustomGradient.g = g;
-    CustomGradient.b = b;
-    CustomGradient.transitions = transitions;
+    delete MODES[0];
+    MODES[0] = new FadingGradient(length, r, g, b, transitions);
 }
 
 /** Sets the panel to one solid color, disabling any active pattern */

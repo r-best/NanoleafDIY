@@ -26,8 +26,7 @@ void setup() {
     port2.begin(115200);
     port3.begin(115200);
 
-    leds.begin();
-    leds.setBrightness(25);
+    setup_leds();
 }
 
 /**
@@ -54,17 +53,16 @@ void loop() {
 void processMessage(uint8_t port){
     char *cmd = readSerial(port, -1);
 
-    const char *token = strtok(cmd, " ");
-
     switch(cmd[0]){
         case '0': // Forwarding command
             forward_cmd(port, cmd+1);
             break;
-        case '1': // Network discovery command
-            char* temp = discover_network(port);
-            PORTS[port]->println(temp);
-            free(temp);
+        case '1': { // Network discovery command
+            char* tree = discover_network(port);
+            PORTS[port]->println(tree);
+            free(tree);
             break;
+        }
         case '2': // Set color command
             PORTS[port]->println(set_color(cmd+2)); break;
         case '3': // Set pattern command
