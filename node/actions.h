@@ -58,7 +58,11 @@ const char* forward_cmd(uint8_t port, char* data){
 }
 
 /**
+ * Helper method for network discovery, sends a discovery request to
+ * the given neighbor and returns true or false if they acknowledge
  * 
+ * Used in conjunction with `_receive_discover()`, which should be called
+ * after this to wait for the full network response
  */
 boolean _request_discover(uint8_t port){
     // Send discovery command to given port
@@ -76,7 +80,10 @@ boolean _request_discover(uint8_t port){
 }
 
 /**
+ * Helper method for network discovery, should be called after `_request_discover()`
+ * if it returned true (i.e. the neighbor acknowledged the request)
  * 
+ * Waits for the response containing the full network tree encoding
  */
 void _receive_discover(uint8_t port, char** tree){
     if(PORTS[port] != &Serial) ((SoftwareSerial*)PORTS[port])->listen();
@@ -170,7 +177,7 @@ const char* set_color(char* data){
 }
 
 /**
- * Sets the LED strip to the given predefined pattern
+ * Sets the LED strip to the given predefined pattern by index
  * Command format: `3<pattern>`
  *  Where pattern is a number corresponding to a predefined pattern
  */
@@ -193,4 +200,38 @@ const char* set_speed(char* data){
 
     set_refresh_rate(speed);
     return MSG_SUCCESS;
+}
+
+/**
+ * Changes the stored custom gradient pattern
+ * Command format: `5<length><r><g><b><transition>[<r><g><b><transition>][<r><g><b><transition>]...`
+ *  length is the number of steps in the gradient (i.e. how many sets of <r><g><b><transition> will follow)
+ *  r, g, and b are hex color codes, and transition is the number of ms (four digits,
+ *      zero padded if necessary) between this rgb step and the next
+ */
+const char* set_custom_pattern(char* data){
+    uint8_t length = data[0] - '0';
+    uint8_t *r = (uint8_t*)malloc(sizeof(uint8_t)*length);
+    uint8_t *g = (uint8_t*)malloc(sizeof(uint8_t)*length);
+    uint8_t *b = (uint8_t*)malloc(sizeof(uint8_t)*length);
+    uint32_t *transitions = (uint32_t*)malloc(sizeof(uint32_t)*length);
+    for(int i = 0; i < length; i++){
+        char tempR[] = { data[(i*10)+1], data[(i*10)+2], '\0' };
+        r[i] = (uint8_t)strtol(tempR, NULL, 16);
+        Serial.println(r[i]);
+
+        char tempG[] = { data[(i*10)+3], data[(i*10)+4], '\0' };
+        g[i] = (uint8_t)strtol(tempG, NULL, 16);
+        Serial.println(g[i]);
+
+        char tempB[] = { data[(i*10)+5], data[(i*10)+6], '\0' };
+        b[i] = (uint8_t)strtol(tempB, NULL, 16);
+        Serial.println(b[i]);
+
+        char tempTransitions[] = { data[(i*10)+7], data[(i*10)+8], data[(i*10)+9], data[(i*10)+10], '\0' };
+        transitions[i] = (uint32_t)strtol(tempTransitions, NULL, 10);
+        Serial.println(transitions[i]);
+    }
+
+    set_custom_gradient(length, r, g, b, transitions);
 }

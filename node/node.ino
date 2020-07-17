@@ -69,7 +69,9 @@ void processMessage(uint8_t port){
             PORTS[port]->println(set_pattern(cmd+1)); break;
         case '4': // Set refresh rate command
             PORTS[port]->println(set_speed(cmd+1)); break;
-        case '5': // Get version command
+        case '5':
+            PORTS[port]->println(set_custom_pattern(cmd+1)); break;
+        case '6': // Get version command
             PORTS[port]->println(get_version()); break;
         default:
             PORTS[port]->println(ERR_INVALID_COMMAND); break;
