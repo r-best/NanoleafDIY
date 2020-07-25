@@ -20,7 +20,7 @@ void discover_network(){
     Log.println("Incoming request: Network Discovery");
 
     // Send discovery command
-    Serial.println("discover");
+    Serial.println("1");
 
     // Wait to see if acknowledgement arrives
     char *resp = readSerial(DISCOVERY_HANDSHAKE_TIMEOUT);

@@ -58,10 +58,35 @@ void setup() {
         }
 
         char cmd[22];
-        sprintf(cmd, "set_color %s %s %s",
+        sprintf(cmd, "2%s%s%s",
             data["r"].as<String>().c_str(),
             data["g"].as<String>().c_str(),
             data["b"].as<String>().c_str());
+        send_command(data["directions"].as<String>().c_str(), cmd);
+        server.send(200);
+    });
+    server.on("/panels/customgradient", HTTP_POST, [](){
+        Log.println("Incoming request: Set Custom Gradient");
+        StaticJsonDocument<500> data;
+        DeserializationError err = deserializeJson(data, server.arg("plain"));
+        
+        if(err){
+            Log.println("ERROR DESERIALIZING");
+            Log.println(err.c_str());
+        }
+
+        int length = strtol(data["length"].as<String>().c_str(), NULL, 10);
+
+        char *cmd = (char*)malloc(length*10+3);
+        sprintf(cmd, "5%d", length);
+        for(int i = 0; i < length; i++){
+            sprintf(cmd+2+(i*10), "%s%s%s%04d",
+                data["steps"][i]["r"].as<String>().c_str(),
+                data["steps"][i]["g"].as<String>().c_str(),
+                data["steps"][i]["b"].as<String>().c_str(),
+                data["steps"][i]["t"].as<int>());
+        }
+        cmd[5+(length*10)] = '\0';
         send_command(data["directions"].as<String>().c_str(), cmd);
         server.send(200);
     });
