@@ -1,7 +1,8 @@
 #ifndef LED_PATTERNS_H
 #define LED_PATTERNS_H
 
-Adafruit_NeoPixel leds(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
+
+extern Adafruit_NeoPixel leds;
 
 /** 
  * Base class for LED patterns, allows each
@@ -35,7 +36,9 @@ class FadingGradient: public Pattern {
         // the transisiton time (in ms) from step 0 to step 1
         uint32_t *transitions;
 
-        void init() override { refresh_rate = 10; };
+        void init() override {
+            refresh_rate = 10;
+        };
         void update() override {
             // New color is the current step's color plus the fraction we are towards the next step's color based on elapsed time
             float elapsed_time = (float)(millis()-last_update) / (float)transitions[current_step];
@@ -56,6 +59,12 @@ class FadingGradient: public Pattern {
             leds.fill(leds.Color(newR, newG, newB));
         }
 
+        FadingGradient(): FadingGradient(2, r, g, b, transitions) {
+            uint8_t r[] = { 0, 255 };
+            uint8_t g[] = { 0, 147 };
+            uint8_t b[] = { 0, 41 };
+            uint32_t transitions[] = { 1000, 1000 };
+        }
         FadingGradient(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uint32_t *transitions) {
             this->length = length;
 

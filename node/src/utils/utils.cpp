@@ -1,20 +1,9 @@
-#ifndef UTILS_H
-#define UTILS_H
-
-#include "constants.h"
+#include "utils.h"
 
 
 // Define the panel's ports (initialized in the main file)
 extern Stream* PORTS[3];
 
-/**
- * Reads a line from the given serial port, up until either the first "\n"
- * or until the optional timeout has passed
- * `timeout` can be set to -1 to run until first "\n" with no bound
- * Adds a string terminator to the input, since serial monitors usually
- * don't send those
- * Returns a malloc'd char pointer, don't forget to free it when you're done
- */
 char* readSerial(uint8_t port, int timeout) {
     char *line = (char*)malloc(sizeof(char)*COMMAND_BUFFER_SIZE);
     uint32_t command_buf_mult = 1;
@@ -45,5 +34,3 @@ char* readSerial(uint8_t port, int timeout) {
 
     return line;
 }
-
-#endif

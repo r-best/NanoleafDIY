@@ -1,11 +1,10 @@
-#include <string.h>
 #include <stdlib.h>
 
 #include <SoftwareSerial.h>
 
-#include "utils.h"
-#include "actions.h"
-#include "constants.h"
+#include "src/utils/utils.h"
+#include "src/leds/leds.h"
+#include "src/actions/actions.h"
 
 
 // TODO BUGFIX: That thing where it writes "TestingOpen" on startup and it gets accepted as an invalid command
@@ -55,8 +54,7 @@ void processMessage(uint8_t port){
 
     switch(cmd[0]){
         case '0': // Forwarding command
-            forward_cmd(port, cmd+1);
-            break;
+            forward_cmd(port, cmd+1); break;
         case '1': { // Network discovery command
             char* tree = discover_network(port);
             PORTS[port]->println(tree);
@@ -64,15 +62,15 @@ void processMessage(uint8_t port){
             break;
         }
         case '2': // Set solid color command
-            PORTS[port]->println(set_color(cmd+1)); break;
+           set_color(cmd+1); break;
         case '3': // Set pattern command
-            PORTS[port]->println(set_pattern(cmd+1)); break;
+            set_pattern(cmd+1); break;
         case '4': // Set refresh rate command
-            PORTS[port]->println(set_speed(cmd+1)); break;
+            set_speed(cmd+1); break;
         case '5':
-            PORTS[port]->println(set_custom_pattern(cmd+1)); break;
+            set_custom_pattern(cmd+1); break;
         case '6': // Get version command
-            PORTS[port]->println(get_version()); break;
+            PORTS[port]->println(VERSION); break;
         default:
             PORTS[port]->println(ERR_INVALID_COMMAND); break;
     }
