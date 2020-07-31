@@ -1,6 +1,8 @@
 #ifndef LED_PATTERNS_H
 #define LED_PATTERNS_H
 
+#include "../utils/constants.h"
+
 
 extern Adafruit_NeoPixel leds;
 
@@ -14,6 +16,26 @@ class Pattern {
         int refresh_rate = 10;
         virtual void init();
         virtual void update();
+};
+
+/**
+ * Pattern that sets the panel to a solid color with no updates
+ */
+class SolidColor: public Pattern {
+    public:
+        uint8_t r, g, b;
+        void init() override {
+            refresh_rate = -1;
+            leds.fill(leds.Color(r, g, b));
+            leds.show();
+        }
+        void update() override { }
+
+        SolidColor(uint8_t r, uint8_t g, uint8_t b){
+            this->r = r;
+            this->g = g;
+            this->b = b;
+        }
 };
 
 /**
@@ -65,16 +87,19 @@ class FadingGradient: public Pattern {
             uint8_t b[] = { 0, 41 };
             uint32_t transitions[] = { 1000, 1000 };
         }
+        FadingGradient(uint8_t length){
+            this->length = length;
+            this->r = (uint8_t*)malloc(sizeof(uint8_t)*length);
+            this->g = (uint8_t*)malloc(sizeof(uint8_t)*length);
+            this->b = (uint8_t*)malloc(sizeof(uint8_t)*length);
+            this->transitions = (uint32_t*)malloc(sizeof(uint32_t)*length);
+        }
         FadingGradient(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uint32_t *transitions) {
             this->length = length;
-
-            uint32_t size = sizeof(uint8_t)*length;
-            this->r = (uint8_t*)malloc(size); memcpy(this->r, r, size);
-            this->g = (uint8_t*)malloc(size); memcpy(this->g, g, size);
-            this->b = (uint8_t*)malloc(size); memcpy(this->b, b, size);
-
-            this->transitions = (uint32_t*)malloc(sizeof(uint32_t)*length);
-            memcpy(this->transitions, transitions, sizeof(uint32_t)*length);
+            this->r = r;
+            this->g = g;
+            this->b = b;
+            this->transitions = transitions;
 
             this->current_step = 0;
             this->last_update = millis();

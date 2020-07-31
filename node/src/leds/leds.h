@@ -6,8 +6,12 @@
 
 #include <Adafruit_NeoPixel.h>
 
+#include "led_patterns.h"
+
 #include "../utils/constants.h"
 
+extern uint8_t current_mode;
+extern Pattern *MODES[];
 
 void setup_leds();
 
@@ -24,9 +28,9 @@ void set_refresh_rate(uint8_t ms);
 int set_mode(uint8_t mode);
 
 /** Updates the stored custom gradient with the given parameters */
-int set_custom_gradient(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uint32_t *transitions);
+void set_custom_gradient(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uint32_t *transitions);
 
 /** Sets the panel to one solid color, disabling any active pattern */
-int set_solid(uint8_t r, uint8_t g, uint8_t b);
+void set_solid(uint8_t r, uint8_t g, uint8_t b);
 
 #endif
