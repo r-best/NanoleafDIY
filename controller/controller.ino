@@ -41,13 +41,15 @@ void setup() {
 
     // Establish server routes
     server.onNotFound([](){ server.send(404); });
-    server.on("/", [](){
+    server.on("/", HTTP_GET, [](){
         Log::println("Incoming request: Health Check");
         server.send(200);
     });
-    server.on("/network", discover_network);
-    server.on("/panels/color", HTTP_POST, set_panel_color);
-    server.on("/panels/customgradient", HTTP_POST, set_panel_customgradient);
+    server.on("/network",               HTTP_GET,   discover_network);
+    server.on("/panels/state",          HTTP_POST,  get_panel_state);
+    server.on("/panels/mode",           HTTP_POST,  set_panel_mode);
+    server.on("/panels/color",          HTTP_POST,  set_panel_color);
+    server.on("/panels/customgradient", HTTP_POST,  set_panel_customgradient);
 
     server.begin();
     mdns->addService("http", "tcp", 80);

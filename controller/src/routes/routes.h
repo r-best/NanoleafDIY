@@ -23,6 +23,10 @@
  */
 void discover_network();
 
+void get_panel_state();
+
+void set_panel_mode();
+
 /**
  * Sets a panel to a given solid color
  * --------------------------------------------------------------

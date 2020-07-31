@@ -4,7 +4,7 @@
 extern ESP8266WebServer server;
 
 /** Helper method to parse the body of a POST request, returns nonzero on error */
-static int _parse_input(StaticJsonDocument<500> *data){
+static int _parse_input(StaticJsonDocument<1000> *data){
     if(DeserializationError err = deserializeJson(*data, server.arg("plain"))){
         Log::println("ERROR DESERIALIZING");
         Log::println(err.c_str());
@@ -35,7 +35,7 @@ static void send_response(int code, const char* data){
  * to the next panel in the directions list, which then forwards
  * it to the next panel, etc.. until no directions are left
  */
-void send_command(const char* directions, char* cmd){
+static void send_command(const char* directions, char* cmd){
     // If we have directions, we need to use the forward command
     if(strcmp(directions, "") != 0){
         char* fwdCmd = (char*)malloc(strlen(cmd) + strlen(directions) + 4);
@@ -94,17 +94,56 @@ void discover_network_DEBUG(){
     free(tree);
 }
 
+void get_panel_state(){
+    Log::println("Incoming request: Get Panel State");
+
+    StaticJsonDocument<1000> data;
+    if(_parse_input(&data)){
+        send_response(500, ERR_PARSE_REQ_BODY);
+        return;
+    }
+
+    // Construct status command & send it
+    const char *directions = data["directions"].as<String>().c_str();
+    char *cmd = (char*)malloc(strlen(directions) + 2);
+    sprintf(cmd, "2%s", directions);
+    Serial.println(cmd);
+
+    // Wait for response
+    char *resp = readSerial(DISCOVERY_RESPONSE_TIMEOUT);
+    if(resp == NULL || strcmp(resp, ERR_PANEL_STATE_RESPONSE) == 0)
+        send_response(500, ERR_PANEL_STATE_RESPONSE);
+    else
+        send_response(200, resp);
+    free(resp);
+}
+
+void set_panel_mode(){
+    Log::println("Incoming request: Set Panel Mode");
+
+    StaticJsonDocument<1000> data;
+    if(_parse_input(&data)){
+        send_response(500, ERR_PARSE_REQ_BODY);
+        return;
+    }
+
+    char cmd[3];
+    sprintf(cmd, "3%s", data["mode"].as<String>().c_str());
+    send_command(data["directions"].as<String>().c_str(), cmd);
+    server.send(200);
+}
+
 void set_panel_color(){
     Log::println("Incoming request: Set Panel Color");
 
-    StaticJsonDocument<500> data;
+    StaticJsonDocument<1000> data;
     if(_parse_input(&data)){
-        send_response(500, "Error deserializing JSON request");
+        send_response(500, ERR_PARSE_REQ_BODY);
         return;
     }
 
     char cmd[22];
-    sprintf(cmd, "2%s%s%s",
+    sprintf(cmd, "5%s%s%s",
         data["r"].as<String>().c_str(),
         data["g"].as<String>().c_str(),
         data["b"].as<String>().c_str());
@@ -115,16 +154,16 @@ void set_panel_color(){
 void set_panel_customgradient(){
     Log::println("Incoming request: Set Custom Gradient");
 
-    StaticJsonDocument<500> data;
+    StaticJsonDocument<1000> data;
     if(_parse_input(&data)){
-        send_response(500, "Error deserializing JSON request");
+        send_response(500, ERR_PARSE_REQ_BODY);
         return;
     }
 
     int length = strtol(data["length"].as<String>().c_str(), NULL, 10);
 
     char *cmd = (char*)malloc(length*10+3); // Length of step * number of steps, plus two starting digits and a \0
-    sprintf(cmd, "5%d", length);
+    sprintf(cmd, "6%d", length);
     for(int i = 0; i < length; i++){
         sprintf(cmd+2+(i*10), "%s%s%s%04d",
             data["steps"][i]["r"].as<String>().c_str(),
