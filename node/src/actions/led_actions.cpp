@@ -1,8 +1,7 @@
 #include "actions.h"
 
-#include "../leds/leds.h"
 
-void set_color(char* data){
+void set_solid_color_action(char* data){
     uint8_t colors[3] = {0, 0, 0};
     for(int i = 0; i < 3; i++){
         if(data[0] == '#'){ // If hexcode
@@ -20,7 +19,7 @@ void set_color(char* data){
     set_solid(colors[0], colors[1], colors[2]);
 }
 
-void set_pattern(char* data){
+void set_mode_action(char* data){
     int pattern = atoi(data);
     if(pattern < 0 || pattern > 255)
         return;
@@ -28,7 +27,7 @@ void set_pattern(char* data){
     set_mode(pattern);
 }
 
-void set_speed(char* data){
+void set_refresh_rate_action(char* data){
     int speed = atoi(data);
     if(speed < 0 || speed > 255)
         return;
@@ -36,7 +35,7 @@ void set_speed(char* data){
     set_refresh_rate(speed);
 }
 
-void set_custom_pattern(char* data){
+void set_gradient_action(char* data){
     uint8_t length = data[0] - '0';
     uint8_t *r = (uint8_t*)malloc(sizeof(uint8_t)*length);
     uint8_t *g = (uint8_t*)malloc(sizeof(uint8_t)*length);

@@ -16,6 +16,7 @@
 
 #include <SoftwareSerial.h>
 
+#include "../leds/leds.h"
 #include "../utils/constants.h"
 
 
@@ -51,26 +52,38 @@ const char* forward_cmd(uint8_t port, char* data);
 char* discover_network(uint8_t port);
 
 /**
+ * Fetch Lighting State ----------------------------------------------------------------------
+ * This command allows the controller to fetch the current lighting state of a given panel
+ * The controller issues this command one by one to each panel on startup, after network discovery
+ * The data is then returned to the app, where the current lighting configuration can be rendered
+ *  for the user
+ * 
+ * Command format: `2<directions>`
+ *  <directions> is in the same format as for the forwarding command
+ */
+void fetch_state_action(uint8_t port, char* data);
+
+/**
  * Sets all of the LEDs to the given color
  * Command format: `2#<hex value>` OR `2<rgb value>
  *  'hex value' is the desired hexadecimal color code (e.x. 'FFFFFF')
  *  'rgb value' is the desired rgb color value padded to make each number 3 digits (e.x. '255000120')
  */
-void set_color(char* data);
+void set_solid_color_action(char* data);
 
 /**
  * Sets the LED strip to the given predefined pattern by index
  * Command format: `3<pattern>`
  *  Where pattern is a number corresponding to a predefined pattern
  */
-void set_pattern(char* data);
+void set_mode_action(char* data);
 
 /**
  * Sets the ms delay used in updating the LED pattern
  * Command format: `4<speed>`
  *  Where speed is the number of ms to delay LED pattern updates
  */
-void set_speed(char* data);
+void set_refresh_rate_action(char* data);
 
 /**
  * Changes the stored custom gradient pattern
@@ -79,6 +92,6 @@ void set_speed(char* data);
  *  r, g, and b are hex color codes, and transition is the number of ms (four digits,
  *      zero padded if necessary) between this rgb step and the next
  */
-void set_custom_pattern(char* data);
+void set_gradient_action(char* data);
 
 #endif

@@ -10,7 +10,7 @@ char* readSerial(uint8_t port, int timeout) {
     unsigned long start, now;
     start = millis();
     int i = 0;
-    do {
+    while(true) {
         if(Serial.available() > 0){
             char rc = PORTS[port]->read();
             if (rc == '\n')
@@ -23,8 +23,14 @@ char* readSerial(uint8_t port, int timeout) {
                 line = (char*)realloc(line, sizeof(char)*COMMAND_BUFFER_SIZE*(++command_buf_mult));
         }
         
+        // If we're out of time, quit the read and return NULL
         now = millis();
-    } while(timeout <= 0 || now - start < timeout);
+        if(timeout > 0 && now - start >= timeout){
+            free(line);
+            return NULL;
+        }
+    }
+
     // If it was a stupid Windows line return,
     // let the string terminator overwrite it
     if(line[i-1] == '\r') i--;

@@ -56,20 +56,22 @@ void processMessage(uint8_t port){
         case '0': // Forwarding command
             forward_cmd(port, cmd+1); break;
         case '1': { // Network discovery command
-            char* tree = discover_network(port);
-            PORTS[port]->println(tree);
+            char* tree = discover_network(port); // Pass this command along to children to get their trees
+            PORTS[port]->println(tree); // Return combined tree to parent
             free(tree);
             break;
         }
-        case '2': // Set solid color command
-           set_color(cmd+1); break;
-        case '3': // Set pattern command
-            set_pattern(cmd+1); break;
+        case '2': // Fetch current lighting state command
+            fetch_state_action(port, cmd+1); break;
+        case '3': // Set active color mode command (see `MODES` array in `leds.cpp`)
+            set_mode_action(cmd+1); break;
         case '4': // Set refresh rate command
-            set_speed(cmd+1); break;
-        case '5':
-            set_custom_pattern(cmd+1); break;
-        case '6': // Get version command
+            set_refresh_rate_action(cmd+1); break;
+        case '5': // Set solid color command
+            set_solid_color_action(cmd+1); break;
+        case '6':
+            set_gradient_action(cmd+1); break;
+        case '7': // Get version command
             PORTS[port]->println(VERSION); break;
         default:
             PORTS[port]->println(ERR_INVALID_COMMAND); break;

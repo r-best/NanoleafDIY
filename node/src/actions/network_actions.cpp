@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 
+#include "../leds/led_patterns.h"
 #include "../utils/utils.h"
 
 
@@ -104,4 +105,50 @@ char* discover_network(uint8_t port){
     free(right_tree);
 
     return tree;
+}
+
+void fetch_state_action(uint8_t port, char* directions){
+    // Get left and right port relative to request origin
+    uint8_t left, right;
+    if      (port == 0) { left = 1; right = 2; }
+    else if (port == 1) { left = 2; right = 0; }
+    else if (port == 2) { left = 0; right = 1; }
+
+    // Reads the first direction in the list to decide where to forward the message ('L' or 'R')
+    uint8_t target_port;
+    if      (directions[0] == 'L') target_port = left;
+    else if (directions[0] == 'R') target_port = right;
+    else { // Else there are no directions left, so this panel is the target
+        if(current_mode == 0){
+            SolidColor *mode = (SolidColor*)MODES[0];
+            char resp[8];
+            sprintf(resp, "0%02X%02X%02X", mode->r, mode->g, mode->b);
+            PORTS[port]->println(resp);
+        } else if(current_mode == 1){
+            FadingGradient *mode = (FadingGradient*)MODES[1];
+            char *resp = (char*)malloc(10*mode->length + 3);
+            sprintf(resp, "1%d", mode->length);
+            for(int i = 0; i < mode->length; i++)
+                sprintf(resp + i*10 + 2, "%02X%02X%02X%04d", mode->r[i], mode->g[i], mode->b[i], mode->transitions[i]);
+            PORTS[port]->println(resp);
+            free(resp);
+        } else { // All other modes have no configurable settings, so we can just send back the mode number
+            char resp[2];
+            sprintf(resp, "%d", current_mode);
+            PORTS[port]->println(resp);
+        }
+        return;
+    }
+
+    // If the direction was 'L' or 'R', forward the request in that direction and wait for a response
+    directions[0] = '2'; // Replace the used direction with the command for the next panel to read
+    PORTS[target_port]->println(directions);
+
+    // Read response and return to caller
+    char *resp;
+    if((resp = readSerial(target_port, DISCOVERY_RESPONSE_TIMEOUT)) == NULL)
+        PORTS[port]->println("Error fetching panel state");
+    else
+        PORTS[port]->println(resp);
+    free(resp);
 }
