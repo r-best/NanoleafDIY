@@ -10,76 +10,46 @@
 #ifndef TREE_H
 #define TREE_H
 
+#include <Arduino.h>
+
+#include "../utils/utils.h"
+
 
 typedef struct Node {
     Node* parent;
     Node* left;
     Node* right;
-    char* directions;
+    char* directions;   // Same representation as in forwarding command, a string of 'L's and 'R's
+    int mode;       // Index of currently active lighting mode
+    char* mode_data;    // String of configuration data for the current mode (e.g. for custom gradient mode, it would be a set of RGB values and transition times)
 } Node;
 
-char* tree_encoding = NULL;
-Node* root = NULL;
+extern char* tree_encoding; // Current state of the network
+extern Node *root;
+
+/**
+ * Recursively discovers the topology of the panel network
+ * --------------------------------------------------------------
+ * Sends a 'discover' command to the first panel, which, if connected,
+ * replies immediately with "Acknowledged!". That panel then sends the same
+ * discover command to both of its neighbors, and waits to see if they
+ * acknowledge, etc..
+ * When this recursion reaches a leaf (neither neighbor acknowledges), the leaf replies
+ * that it has no neighbors ("(XX)"). Its parent then combines the replies of both its children
+ * and sends it back up to its parent (e.g. "((XX)X)" if the node has a leaf to the left and nothing to the right), etc..
+ * This continues back up the tree until the first panel hands the completed string back to the controller
+ * 
+ * The resulting string encoding of the network is sent to the app to be rendered to the user
+ */
+const char* discover_network();
 
 /**
  * Recursive funtion to free up all the malloc'd memory
  * used by the network tree, so the tree can be recalculated
  * Should be called with the root node as the argument
  */
-void clear_tree(Node* node){
-    free(node->directions);
-    if(node->left) clear_tree(node->left);
-    if(node->right) clear_tree(node->right);
-    free(node);
-}
+void clear_tree();
 
-/**
- * Algorithm to parse the network structure from the given string
- */
-void parse_tree(char* tree){
-    tree_encoding = tree;
-    int input_length = strlen(tree_encoding);
-
-    if(root != NULL){
-        clear_tree(root);
-        free(tree_encoding);
-    }
-
-    root = (Node*)malloc(sizeof(Node));
-    root->directions = (char*)malloc(1);
-    strcpy(root->directions, "");
-    root->parent = NULL;
-    root->left = NULL;
-    root->right = NULL;
-
-    Node* active = root;
-    boolean next_is_right = false;
-    int active_directions_length = 1;
-    for(int i = 1; i < input_length-1; i++){
-        // On an open parenthesis, we add a new node to the tree
-        if(tree_encoding[i] == '('){
-            Node *child = (Node*)malloc(sizeof(Node));
-            child->parent = active;
-            child->directions = (char*)malloc(active_directions_length++);
-            strcpy(child->directions, active->directions);
-            if(next_is_right){
-                active->right = child;
-                strcat(child->directions, "R");
-                next_is_right = false;
-            }
-            else{
-                active->left = child;
-                strcat(child->directions, "L");
-            }
-            active = child;
-        }
-        // On a close parenthesis, we go back to the parent node and set
-        // that the next node added will be on the right
-        else if (tree_encoding[i] == ')'){
-            active = active->parent;
-            next_is_right = true;
-        }
-    }
-}
+const char* request_panel_state(char* directions);
 
 #endif

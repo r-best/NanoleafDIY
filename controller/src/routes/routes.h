@@ -5,23 +5,14 @@
 #include <ArduinoJson.h>
 #include <ESP8266WebServer.h>
 
+#include "../network/tree.h"
 #include "../utils/utils.h"
 #include "../utils/constants.h"
 
 
-/**
- * Recursively discovers the topology of the panel network
- * --------------------------------------------------------------
- * Sends a 'discover' command to the first panel, which, if connected,
- * replies immediately with "Acknowledged!". That panel then sends the same
- * discover command to both of its neighbors, and waits to see if they
- * acknowledge, etc..
- * When this recursion reaches a leaf (neither neighbor acknowledges), the leaf replies
- * that it has no neighbors ("(XX)"). Its parent then combines the replies of both its children
- * and sends it back up to its parent ("((XX)X)" if the node has a leaf to the left and nothing to the right), etc..
- * This continues back up the tree until the first panel hands the completed string back to the controller
- */
-void discover_network();
+void get_network_configuration();
+
+void refresh_network_configuration();
 
 void get_panel_state();
 

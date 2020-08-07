@@ -51,47 +51,31 @@ static void send_command(const char* directions, char* cmd){
     }
 }
 
-void discover_network(){
-    Log::println("Incoming request: Network Discovery");
-
-    // Send discovery command
-    Serial.println("1");
-
-    // Wait to see if acknowledgement arrives
-    char *resp = readSerial(DISCOVERY_HANDSHAKE_TIMEOUT);
-    if(resp == NULL){
-        Log::println("Network discovery acknowledgement timeout; no panels connected");
-        send_response(204, "No panels connected"); // 204 no content :shrug:
-        free(resp);
-        return;
-    }
-    if(strcmp(resp, "Acknowledged!") != 0){
-        Log::print(ERR_NON_ACKNOWLEDGEMENT);Log::print(": ");Log::println(resp);
-        send_response(500, ERR_NON_ACKNOWLEDGEMENT);
-        free(resp);
-        return;
-    }
-    free(resp);
-
-    // After discovery acknowledgement, wait for response with full network tree
-    char* tree = readSerial(DISCOVERY_RESPONSE_TIMEOUT);
-    if(tree == NULL){
-        Log::println(ERR_READ_TIMEOUT);
-        send_response(500, "Read timeout in network discovery");
-        free(tree);
-        return;
-    }
-
-    send_response(200, tree);
-    free(tree);
+void get_network_configuration(){
+    Log::println("Incoming request: Get Network Configuration");
+    send_response(200, tree_encoding);
 }
 // Mock network discovery for when I don't have another panel plugged in
-void discover_network_DEBUG(){
-    const char* input = "(((XX)X)(X((XX)X)))";
-    char* tree = (char*)malloc(strlen(input));
-    strcpy(tree, input);
+void get_network_configuration_DEBUG(){
+    send_response(200, "(((XX)X)(X((XX)X)))");
+}
+
+void refresh_network_configuration(){
+    Log::println("Incoming request: Refresh Network Configuration");
+
+    const char* tree = discover_network();
+    if(strcmp(tree, ERR_NON_ACKNOWLEDGEMENT) == 0){
+        Log::print(ERR_NON_ACKNOWLEDGEMENT);Log::print(": ");Log::println(tree);
+        send_response(500, ERR_NON_ACKNOWLEDGEMENT);
+        return;
+    }
+    if(strcmp(tree, ERR_READ_TIMEOUT) == 0){
+        Log::println(ERR_READ_TIMEOUT);
+        send_response(500, "Read timeout in network discovery");
+        return;
+    }
+
     send_response(200, tree);
-    free(tree);
 }
 
 void get_panel_state(){
@@ -103,19 +87,27 @@ void get_panel_state(){
         return;
     }
 
-    // Construct status command & send it
+    // Find correct Node in stored linked list network representation
+    Node *current = root;
     const char *directions = data["directions"].as<String>().c_str();
-    char *cmd = (char*)malloc(strlen(directions) + 2);
-    sprintf(cmd, "2%s", directions);
-    Serial.println(cmd);
+    for(int i = 0; i < strlen(directions); i++){
+        if(directions[i] == 'L')
+            current = current->left;
+        else if(directions[i] == 'R')
+            current = current->right;
 
-    // Wait for response
-    char *resp = readSerial(DISCOVERY_RESPONSE_TIMEOUT);
-    if(resp == NULL || strcmp(resp, ERR_PANEL_STATE_RESPONSE) == 0)
-        send_response(500, ERR_PANEL_STATE_RESPONSE);
-    else
-        send_response(200, resp);
-    free(resp);
+        // If we just moved to a panel that doesn't exist, return an error
+        if(current == NULL){
+            send_response(400, "Panel does not exist");
+            return;
+        }
+    }
+
+    // Return the Node's saved config data
+    char* buffer = (char*)malloc(strlen(current->mode_data) + 1);
+    sprintf(buffer, "%d%s", current->mode, current->mode_data);
+    send_response(200, buffer);
+    free(buffer);
 }
 
 void set_panel_mode(){
