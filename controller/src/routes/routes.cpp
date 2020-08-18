@@ -87,25 +87,23 @@ void get_panel_state(){
         return;
     }
 
-    // Find correct Node in stored linked list network representation
-    Node *current = root;
-    const char *directions = data["directions"].as<String>().c_str();
-    for(int i = 0; i < strlen(directions); i++){
-        if(directions[i] == 'L')
-            current = current->left;
-        else if(directions[i] == 'R')
-            current = current->right;
-
-        // If we just moved to a panel that doesn't exist, return an error
-        if(current == NULL){
-            send_response(400, "Panel does not exist");
-            return;
-        }
+    // Find correct Node in stored linked list network representation & update its stored settings
+    Node *panel = fetch_panel(data["directions"].as<String>().c_str());
+    if(panel == NULL){
+        send_response(400, "Panel does not exist");
+        return;
     }
 
     // Return the Node's saved config data
-    char* buffer = (char*)malloc(strlen(current->mode_data) + 1);
-    sprintf(buffer, "%d%s", current->mode, current->mode_data);
+    char* buffer;
+    if(panel->mode_data == NULL){
+        buffer = (char*)malloc(2);
+        sprintf(buffer, "%d", panel->mode);
+    }
+    else{
+        buffer = (char*)malloc(strlen(panel->mode_data) + 1);
+        sprintf(buffer, "%d%s", panel->mode, panel->mode_data);
+    }
     send_response(200, buffer);
     free(buffer);
 }
@@ -119,10 +117,33 @@ void set_panel_mode(){
         return;
     }
 
+    const char* directions = data["directions"].as<String>().c_str();
+
+    // Send command to panel to switch mode
     char cmd[3];
     sprintf(cmd, "3%s", data["mode"].as<String>().c_str());
-    send_command(data["directions"].as<String>().c_str(), cmd);
-    server.send(200);
+    send_command(directions, cmd);
+
+    // After switching mode, ask panel for current state to get any custom settings it has stored for the new mode
+    send_command(directions, "2");
+    char* resp = readSerial(DISCOVERY_HANDSHAKE_TIMEOUT);
+    if(resp == NULL){
+        send_response(500, "Error reading new panel state");
+        return;
+    }
+
+    // Find correct Node in stored linked list network representation & update its stored settings
+    Node *panel = fetch_panel(directions);
+    if(panel == NULL){
+        send_response(400, "Panel does not exist");
+        return;
+    }
+    panel->mode = resp[0] - '0';
+    if(panel->mode_data == NULL)    panel->mode_data = (char*)malloc(strlen(resp));
+    else                            panel->mode_data = (char*)realloc(panel->mode_data, strlen(resp));
+    strcpy(panel->mode_data, resp+1);
+
+    send_response(200, "");
 }
 
 void set_panel_color(){
@@ -134,13 +155,28 @@ void set_panel_color(){
         return;
     }
 
+    // Find correct Node in stored linked list network representation & update its stored settings
+    Node *panel = fetch_panel(data["directions"].as<String>().c_str());
+    if(panel == NULL){
+        send_response(400, "Panel does not exist");
+        return;
+    }
+
+    // If panel is currently in solid color mode, need to update our stored mode_data to reflect change
+    if(panel->mode == 0){
+        sprintf(panel->mode_data, "%s%s%s",
+            data["r"].as<String>().c_str(),
+            data["g"].as<String>().c_str(),
+            data["b"].as<String>().c_str());
+    }
+
     char cmd[22];
     sprintf(cmd, "5%s%s%s",
         data["r"].as<String>().c_str(),
         data["g"].as<String>().c_str(),
         data["b"].as<String>().c_str());
     send_command(data["directions"].as<String>().c_str(), cmd);
-    server.send(200);
+    send_response(200, "");
 }
 
 void set_panel_customgradient(){
@@ -152,17 +188,34 @@ void set_panel_customgradient(){
         return;
     }
 
-    int length = strtol(data["length"].as<String>().c_str(), NULL, 10);
+    // Find correct Node in stored linked list network representation & update its stored settings
+    Node *panel = fetch_panel(data["directions"].as<String>().c_str());
+    if(panel == NULL){
+        send_response(400, "Panel does not exist");
+        return;
+    }
 
-    char *cmd = (char*)malloc(length*10+3); // Length of step * number of steps, plus two starting digits and a \0
-    sprintf(cmd, "6%d", length);
+    int length = strtol(data["length"].as<String>().c_str(), NULL, 10);
+    char* new_mode_data = (char*)malloc(length*10+3);
+    sprintf(new_mode_data, "%d", length);
     for(int i = 0; i < length; i++){
-        sprintf(cmd+2+(i*10), "%s%s%s%04d",
+        sprintf(new_mode_data+1+(i*10), "%s%s%s%04d",
             data["steps"][i]["r"].as<String>().c_str(),
             data["steps"][i]["g"].as<String>().c_str(),
             data["steps"][i]["b"].as<String>().c_str(),
             data["steps"][i]["t"].as<int>());
     }
+
+    // If panel is currently in gradient mode, need to update our stored mode_data to reflect change
+    if(panel->mode == 1){
+        panel->mode_data = (char*)realloc(panel->mode_data, strlen(new_mode_data)+1);
+        strcpy(panel->mode_data, new_mode_data);
+    }
+
+    char *cmd = (char*)malloc(strlen(new_mode_data)+2);
+    sprintf(cmd, "6%s", new_mode_data);
     send_command(data["directions"].as<String>().c_str(), cmd);
-    server.send(200);
+    send_response(200, "");
+    free(new_mode_data);
+    free(cmd);
 }

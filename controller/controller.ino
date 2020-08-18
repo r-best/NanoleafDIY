@@ -53,7 +53,7 @@ void setup() {
     server.on("/panels/color",          HTTP_POST,  set_panel_color);
     server.on("/panels/customgradient", HTTP_POST,  set_panel_customgradient);
 
-    // Obtain urrent panel configuration & light settings
+    // Obtain current panel configuration & light settings
     network_startup();
 
     server.begin();
@@ -79,43 +79,15 @@ void network_startup(){
     while(true){
         Log::println("Looking for panels...");
         const char* tree = discover_network();
-        if(strcmp(tree, ERR_NON_ACKNOWLEDGEMENT) == 0){
-            Log::print(ERR_NON_ACKNOWLEDGEMENT);Log::print(": ");Log::println(tree);
-        }
-        else if(strcmp(tree, ERR_READ_TIMEOUT) == 0)
-            Log::println(ERR_READ_TIMEOUT);
-        else if(strcmp(tree, "()") == 0)
-            Log::println("No panels connected");
+
+        // If there was an error, log it and continue the loop
+        if     (strcmp(tree, ERR_NON_ACKNOWLEDGEMENT) == 0){    Log::print(ERR_NON_ACKNOWLEDGEMENT);Log::print(": ");Log::println(tree); }
+        else if(strcmp(tree, ERR_READ_TIMEOUT) == 0)            Log::println(ERR_READ_TIMEOUT);
+        else if(strcmp(tree, "") == 0)                          Log::println(ERR_NO_PANELS_CONNECTED);
+        else if(strcmp(tree, ERR_TREE_PARSE) == 0)              Log::println(ERR_TREE_PARSE);
         else
             break;
         delay(3000);
     }
-
-    // Iterate through the tree, requesting each panel's current lighting state along the way and storing it
-    Log::println("Discovered panel network, requesting lighting state");
-    bool right = false;
-    Node *current = root;
-    while(true){
-        if(current == root && current->mode > -1) break; // If we've come back up to the root after processing it, we've traversed entire tree
-
-        if(current->mode == -1){ // Prevent processing same node twice
-            const char *resp = request_panel_state(current->directions);
-            current->mode = resp[0] - '0';
-            switch(current->mode){
-                case 0: case 1: // Lighting modes that have custom config data
-                    current->mode_data = (char*)malloc(strlen(resp));
-                    strcpy(current->mode_data, resp+1);
-                    break;
-                default: // Other modes don't need custom data
-                    current->mode_data = NULL;
-                    break;
-            }
-            Log::print("Panel ");Log::print(current->directions);Log::print(" - Mode ");Log::println(current->mode);
-        }
-
-        if      (current->left   != NULL && current->left->mode  == -1) current = current->left;
-        else if (current->right  != NULL && current->right->mode == -1) current = current->right;
-        else if (current->parent != NULL)                               current = current->parent;
-    }
-    Log::println("Lighting state obtained, startup complete");
+    Log::println("Panel network mapping complete, starting webserver");
 }

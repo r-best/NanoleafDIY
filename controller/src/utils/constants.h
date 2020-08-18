@@ -27,11 +27,12 @@
 #define COMMAND_BUFFER_SIZE 250
 
 // Response message constants
-#define MSG_SUCCESS "MSG_SUCCESS"
-#define ERR_PARSE_REQ_BODY "Error deserializing JSON request"
-#define ERR_NO_PANELS_CONNECTED "No panels are connected to the controller"
-#define ERR_READ_TIMEOUT "Read timed out"
-#define ERR_NON_ACKNOWLEDGEMENT "Non-acknowledgement received for network discovery"
-#define ERR_PANEL_STATE_RESPONSE "Error fetching panel state"
+#define MSG_SUCCESS                 "MSG_SUCCESS"
+#define ERR_PARSE_REQ_BODY          "Error deserializing JSON request"
+#define ERR_NO_PANELS_CONNECTED     "No panels are connected to the controller"
+#define ERR_READ_TIMEOUT            "Read timed out"
+#define ERR_NON_ACKNOWLEDGEMENT     "Non-acknowledgement received for network discovery"
+#define ERR_PANEL_STATE_RESPONSE    "Error fetching panel state"
+#define ERR_TREE_PARSE              "Error parsing tree encoding"
 
 #endif
