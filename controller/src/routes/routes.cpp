@@ -164,14 +164,14 @@ void set_panel_color(){
 
     // If panel is currently in solid color mode, need to update our stored mode_data to reflect change
     if(panel->mode == 0){
-        sprintf(panel->mode_data, "%s%s%s",
+        sprintf(panel->mode_data, "%02s%02s%02s",
             data["r"].as<String>().c_str(),
             data["g"].as<String>().c_str(),
             data["b"].as<String>().c_str());
     }
 
     char cmd[22];
-    sprintf(cmd, "5%s%s%s",
+    sprintf(cmd, "5#%02s%02s%02s",
         data["r"].as<String>().c_str(),
         data["g"].as<String>().c_str(),
         data["b"].as<String>().c_str());
@@ -199,7 +199,7 @@ void set_panel_customgradient(){
     char* new_mode_data = (char*)malloc(length*10+3);
     sprintf(new_mode_data, "%d", length);
     for(int i = 0; i < length; i++){
-        sprintf(new_mode_data+1+(i*10), "%s%s%s%04d",
+        sprintf(new_mode_data+1+(i*10), "%02s%02s%02s%04d",
             data["steps"][i]["r"].as<String>().c_str(),
             data["steps"][i]["g"].as<String>().c_str(),
             data["steps"][i]["b"].as<String>().c_str(),

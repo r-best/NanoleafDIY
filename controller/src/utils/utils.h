@@ -12,6 +12,7 @@ class Log {
     static SoftwareSerial *debugSerial;
     public:
         static void begin()                        { if(DEBUG) debugSerial->begin(9600);    }
+        static void print(int msg)                 { if(DEBUG) debugSerial->print(msg);     }
         static void print(const char* msg)         { if(DEBUG) debugSerial->print(msg);     }
         static void println(void)                  { if(DEBUG) debugSerial->println();      }
         static void println(int msg)               { if(DEBUG) debugSerial->println(msg);   }

@@ -43,7 +43,9 @@ static int request_panel_states(){
                     current->mode_data = NULL;
                     break;
             }
-            Log::print("Panel |");Log::print(current->directions);Log::print("| - Mode ");Log::println(current->mode);
+            Log::print("Panel |");Log::print(current->directions);Log::print("| - Mode ");Log::print(current->mode);
+            if(current->mode_data != NULL){ Log::print(" - Data: ");Log::println(current->mode_data); }
+            else Log::println();
         }
 
         // Navigate to next unvisited node (preference for left, then right, then back up the tree)
