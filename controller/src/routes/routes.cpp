@@ -39,7 +39,7 @@ static void send_command(const char* directions, char* cmd){
     // If we have directions, we need to use the forward command
     if(strcmp(directions, "") != 0){
         char* fwdCmd = (char*)malloc(strlen(cmd) + strlen(directions) + 4);
-        sprintf(fwdCmd, "fwd %s %s", directions, cmd);
+        sprintf(fwdCmd, "0%s|%s", directions, cmd);
         Log::print("Sending command: ");Log::println(fwdCmd);
         Serial.println(fwdCmd);
         free(fwdCmd);
@@ -121,11 +121,11 @@ void set_panel_mode(){
 
     // Send command to panel to switch mode
     char cmd[3];
-    sprintf(cmd, "3%s", data["mode"].as<String>().c_str());
+    sprintf(cmd, "4%s", data["mode"].as<String>().c_str());
     send_command(directions, cmd);
 
     // After switching mode, ask panel for current state to get any custom settings it has stored for the new mode
-    send_command(directions, "2");
+    send_command(directions, "3");
     char* resp = readSerial(DISCOVERY_HANDSHAKE_TIMEOUT);
     if(resp == NULL){
         send_response(500, "Error reading new panel state");
@@ -171,7 +171,7 @@ void set_panel_color(){
     }
 
     char cmd[22];
-    sprintf(cmd, "5#%02s%02s%02s",
+    sprintf(cmd, "6#%02s%02s%02s",
         data["r"].as<String>().c_str(),
         data["g"].as<String>().c_str(),
         data["b"].as<String>().c_str());
@@ -213,7 +213,7 @@ void set_panel_customgradient(){
     }
 
     char *cmd = (char*)malloc(strlen(new_mode_data)+2);
-    sprintf(cmd, "6%s", new_mode_data);
+    sprintf(cmd, "7%s", new_mode_data);
     send_command(data["directions"].as<String>().c_str(), cmd);
     send_response(200, "");
     free(new_mode_data);

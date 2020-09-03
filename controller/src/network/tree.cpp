@@ -20,7 +20,7 @@ static int request_panel_states(){
         if(current->mode == -1){ // Prevent processing same node twice
             // Construct status command & send it
             char *cmd = (char*)malloc(strlen(current->directions) + 2);
-            sprintf(cmd, "2%s", current->directions);
+            sprintf(cmd, "3%s", current->directions);
             Log::print("Sending command: "); Log::println(cmd);
             Serial.println(cmd);
             free(cmd);
@@ -108,7 +108,7 @@ static int parse_tree(char* tree){
 
 const char* discover_network(){
     // Send discovery command
-    Serial.println("1");
+    Serial.println("2");
 
     // Wait to see if acknowledgement arrives
     char *resp = readSerial(DISCOVERY_HANDSHAKE_TIMEOUT);

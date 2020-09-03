@@ -42,7 +42,7 @@ const char* forward_cmd(uint8_t port, char* data){
 static bool _request_discover(uint8_t port){
     // Send discovery command to given port
     if(PORTS[port] != &Serial) ((SoftwareSerial*)PORTS[port])->listen();
-    PORTS[port]->println("1");
+    PORTS[port]->println("2");
 
     // Wait for acknowledgement
     char *resp = readSerial(port, DISCOVERY_HANDSHAKE_TIMEOUT);
@@ -141,7 +141,7 @@ void fetch_state_action(uint8_t port, char* directions){
     }
 
     // If the direction was 'L' or 'R', forward the request in that direction and wait for a response
-    directions[0] = '2'; // Replace the used direction with the command for the next panel to read
+    directions[0] = '3'; // Replace the used direction with the command for the next panel to read
     PORTS[target_port]->println(directions);
 
     // Read response and return to caller

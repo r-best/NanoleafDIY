@@ -58,36 +58,36 @@ char* discover_network(uint8_t port);
  * The data is then returned to the app, where the current lighting configuration can be rendered
  *  for the user
  * 
- * Command format: `2<directions>`
+ * Command format: `3<directions>`
  *  <directions> is in the same format as for the forwarding command
  */
 void fetch_state_action(uint8_t port, char* data);
 
 /**
- * Sets all of the LEDs to the given color
- * Command format: `2#<hex value>` OR `2<rgb value>
- *  'hex value' is the desired hexadecimal color code (e.x. 'FFFFFF')
- *  'rgb value' is the desired rgb color value padded to make each number 3 digits (e.x. '255000120')
- */
-void set_solid_color_action(char* data);
-
-/**
  * Sets the LED strip to the given predefined pattern by index
- * Command format: `3<pattern>`
+ * Command format: `4<pattern>`
  *  Where pattern is a number corresponding to a predefined pattern
  */
 void set_mode_action(char* data);
 
 /**
  * Sets the ms delay used in updating the LED pattern
- * Command format: `4<speed>`
+ * Command format: `5<speed>`
  *  Where speed is the number of ms to delay LED pattern updates
  */
 void set_refresh_rate_action(char* data);
 
 /**
+ * Sets all of the LEDs to the given color
+ * Command format: `6#<hex value>` OR `2<rgb value>`
+ *  'hex value' is the desired hexadecimal color code (e.x. 'FFFFFF')
+ *  'rgb value' is the desired rgb color value padded to make each number 3 digits (e.x. '255000120')
+ */
+void set_solid_color_action(char* data);
+
+/**
  * Changes the stored custom gradient pattern
- * Command format: `5<length><r><g><b><transition>[<r><g><b><transition>][<r><g><b><transition>]...`
+ * Command format: `7<length><r><g><b><transition>[<r><g><b><transition>][<r><g><b><transition>]...`
  *  length is the number of steps in the gradient (i.e. how many sets of <r><g><b><transition> will follow)
  *  r, g, and b are hex color codes, and transition is the number of ms (four digits,
  *      zero padded if necessary) between this rgb step and the next
