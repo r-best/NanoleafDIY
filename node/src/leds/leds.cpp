@@ -69,8 +69,6 @@ void set_custom_gradient(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uin
 
 void set_blink(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uint32_t *times){
     delete MODES[2];
-    Serial.println(times[0]);
-    Serial.println(times[1]);
     MODES[2] = new Blink(length, r, g, b, times);
     MODES[2]->init();
     save_blink_state();
