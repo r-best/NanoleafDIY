@@ -22,10 +22,14 @@ SolidColor* get_solid_color_state();
 
 FadingGradient* get_custom_gradient_state();
 
+Blink* get_blink_state();
+
 void save_current_mode_state();
 
 void save_solid_color_state();
 
 void save_custom_gradient_state();
+
+void save_blink_state();
 
 #endif

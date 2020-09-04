@@ -114,6 +114,33 @@ class FadingGradient: public Pattern {
 };
 
 /**
+ * Similar to FadingGradient (see above), but blinks to the next color in the sequence instead
+ * of gradually fading between them
+ * The color arrays r, g, and b store the desired color at each step in the sequence
+ * (i.e. r[0] b[0] g[0] represents the starting color, r[1] g[1] b[1] is the second color, etc..)
+ * and the transisitons array stores the time (in ms) to wait until advancing to the next step
+ */
+class Blink: public FadingGradient {
+    // Tracks current time
+    unsigned long last_update;
+    public:
+        using FadingGradient::FadingGradient;
+        void init() override {
+            refresh_rate = 10;
+        };
+        void update() override {
+            // If enough time has passed, advance to next step
+            unsigned long now = millis();
+            if(now-last_update >= transitions[current_step]){
+                if(++current_step >= length)
+                    current_step = 0;
+                last_update = now;
+                leds.fill(leds.Color(r[current_step], g[current_step], b[current_step]));
+            }
+        }
+};
+
+/**
  * Applies a rainbow effect scrolling across the LEDs
  * 
  * Adapted from Adafruit Neopixel library examples

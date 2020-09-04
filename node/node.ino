@@ -72,9 +72,11 @@ void processMessage(uint8_t port){
             set_refresh_rate_action(cmd+1); break;
         case '6': // Set solid color command
             set_solid_color_action(cmd+1); break;
-        case '7':
+        case '7': // Set gradient command
             set_gradient_action(cmd+1); break;
-        case '8': // Get version command
+        case '8': // Set blinking pattern command
+            set_blinking_action(cmd+1); break;
+        case '9': // Get version command
             PORTS[port]->println(VERSION); break;
         default:
             PORTS[port]->println(ERR_INVALID_COMMAND); break;

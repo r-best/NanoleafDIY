@@ -13,6 +13,7 @@ unsigned long timer;
 Pattern *MODES[] = {
     NULL, // Space for solid color pattern, loaded from EEPROM in `setup_leds()`
     NULL, // Space for custom gradient pattern, loaded from EEPROM in `setup_leds()`
+    NULL, // Space for blinking pattern, loaded from EEPROM in `setup_leds()`
     new RainbowPattern(),
     new TheaterChase(),
     new TheaterChaseRainbow()
@@ -25,8 +26,8 @@ void setup_leds(){
     // Load lighting state from EEPROM
     MODES[0] = get_solid_color_state();
     MODES[1] = get_custom_gradient_state();
+    MODES[2] = get_blink_state();
     set_mode(get_current_mode_state());
-
 
     timer = millis();
 }
@@ -50,6 +51,14 @@ int set_mode(uint8_t mode){
     return 0;
 }
 
+/** Updates the solid color setting */
+void set_solid(uint8_t r, uint8_t g, uint8_t b){
+    delete MODES[0];
+    MODES[0] = new SolidColor(r, g, b);
+    MODES[0]->init();
+    save_solid_color_state();
+}
+
 void set_custom_gradient(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uint32_t *transitions){
     delete MODES[1];
     MODES[1] = new FadingGradient(length, r, g, b, transitions);
@@ -57,10 +66,12 @@ void set_custom_gradient(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uin
     save_custom_gradient_state();
 }
 
-/** Updates the solid color setting */
-void set_solid(uint8_t r, uint8_t g, uint8_t b){
-    delete MODES[0];
-    MODES[0] = new SolidColor(r, g, b);
-    MODES[0]->init();
-    save_solid_color_state();
+
+void set_blink(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uint32_t *times){
+    delete MODES[2];
+    Serial.println(times[0]);
+    Serial.println(times[1]);
+    MODES[2] = new Blink(length, r, g, b, times);
+    MODES[2]->init();
+    save_blink_state();
 }

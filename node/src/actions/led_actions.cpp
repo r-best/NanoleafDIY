@@ -35,6 +35,7 @@ void set_refresh_rate_action(char* data){
     set_refresh_rate(speed);
 }
 
+/** This is literally the same as `set_blinking_action` except it calls the gradient function on the last line, sorry */
 void set_gradient_action(char* data){
     uint8_t length = data[0] - '0';
     uint8_t *r = (uint8_t*)malloc(sizeof(uint8_t)*length);
@@ -56,4 +57,30 @@ void set_gradient_action(char* data){
     }
 
     set_custom_gradient(length, r, g, b, transitions);
+}
+
+
+/** This is literally the same as `set_gradient_action` except it calls the blink function on the last line, sorry */
+void set_blinking_action(char* data){
+    uint8_t length = data[0] - '0';
+    uint8_t *r = (uint8_t*)malloc(sizeof(uint8_t)*length);
+    uint8_t *g = (uint8_t*)malloc(sizeof(uint8_t)*length);
+    uint8_t *b = (uint8_t*)malloc(sizeof(uint8_t)*length);
+    uint32_t *times = (uint32_t*)malloc(sizeof(uint32_t)*length);
+    for(int i = 0; i < length; i++){
+        char tempR[] = { data[(i*10)+1], data[(i*10)+2], '\0' };
+        r[i] = (uint8_t)strtol(tempR, NULL, 16);
+
+        char tempG[] = { data[(i*10)+3], data[(i*10)+4], '\0' };
+        g[i] = (uint8_t)strtol(tempG, NULL, 16);
+
+        char tempB[] = { data[(i*10)+5], data[(i*10)+6], '\0' };
+        b[i] = (uint8_t)strtol(tempB, NULL, 16);
+
+        char tempTimes[] = { data[(i*10)+7], data[(i*10)+8], data[(i*10)+9], data[(i*10)+10], '\0' };
+        times[i] = (uint32_t)strtol(tempTimes, NULL, 10);
+        if(times[i] < 500) times[i] = 500;
+    }
+
+    set_blink(length, r, g, b, times);
 }
