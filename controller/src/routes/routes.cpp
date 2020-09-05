@@ -146,6 +146,24 @@ void set_panel_mode(){
     send_response(200, "");
 }
 
+void set_panel_brightness(){
+    Log::println("Incoming request: Set Panel Brightness");
+
+    StaticJsonDocument<1000> data;
+    if(_parse_input(&data)){
+        send_response(500, ERR_PARSE_REQ_BODY);
+        return;
+    }
+
+    const char* directions = data["directions"].as<String>().c_str();
+
+    char cmd[3];
+    sprintf(cmd, "5%s", data["brightness"].as<String>().c_str());
+    send_command(directions, cmd);
+
+    send_response(200, "");
+}
+
 void set_panel_color(){
     Log::println("Incoming request: Set Panel Color");
 
@@ -247,7 +265,7 @@ void set_panel_blink(){
             data["steps"][i]["t"].as<int>());
     }
 
-    // If panel is currently in gradient mode, need to update our stored mode_data to reflect change
+    // If panel is currently in blink mode, need to update our stored mode_data to reflect change
     if(panel->mode == 1){
         panel->mode_data = (char*)realloc(panel->mode_data, strlen(new_mode_data)+1);
         strcpy(panel->mode_data, new_mode_data);

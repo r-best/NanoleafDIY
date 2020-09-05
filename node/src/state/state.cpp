@@ -17,10 +17,9 @@ uint8_t get_current_mode_state(){
 float get_brightness_state(){
     uint32_t offset = MODE_SIZE;
 
-    float mode;
-    EEPROM.get(offset, mode);
-    Serial.println(mode);
-    return mode;
+    float brightness;
+    EEPROM.get(offset, brightness);
+    return brightness;
 }
 
 SolidColor* get_solid_color_state(){

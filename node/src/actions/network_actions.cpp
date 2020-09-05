@@ -132,6 +132,14 @@ void fetch_state_action(uint8_t port, char* directions){
                 sprintf(resp + i*10 + 2, "%02X%02X%02X%04d", mode->r[i], mode->g[i], mode->b[i], mode->transitions[i]);
             PORTS[port]->println(resp);
             free(resp);
+        } else if(current_mode == 2){
+            Blink *mode = (Blink*)MODES[2];
+            char *resp = (char*)malloc(10*mode->length + 3);
+            sprintf(resp, "2%d", mode->length);
+            for(int i = 0; i < mode->length; i++)
+                sprintf(resp + i*10 + 2, "%02X%02X%02X%04d", mode->r[i], mode->g[i], mode->b[i], mode->transitions[i]);
+            PORTS[port]->println(resp);
+            free(resp);
         } else { // All other modes have no configurable settings, so we can just send back the mode number
             char resp[2];
             sprintf(resp, "%d", current_mode);

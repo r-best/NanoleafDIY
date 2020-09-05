@@ -50,6 +50,7 @@ void setup() {
     server.on("/network/refresh",       HTTP_GET,   refresh_network_configuration);
     server.on("/panels/state",          HTTP_POST,  get_panel_state);
     server.on("/panels/mode",           HTTP_POST,  set_panel_mode);
+    server.on("/panels/brightness",     HTTP_POST,  set_panel_brightness);
     server.on("/panels/color",          HTTP_POST,  set_panel_color);
     server.on("/panels/customgradient", HTTP_POST,  set_panel_customgradient);
     server.on("/panels/blink",          HTTP_POST,  set_panel_blink);

@@ -35,7 +35,7 @@ static int request_panel_states(){
             // Record light status data
             current->mode = resp[0] - '0';
             switch(current->mode){
-                case 0: case 1: // Lighting modes that have custom config data
+                case 0: case 1: case 2: // Lighting modes that have custom config data
                     current->mode_data = (char*)malloc(strlen(resp));
                     strcpy(current->mode_data, resp+1);
                     break;

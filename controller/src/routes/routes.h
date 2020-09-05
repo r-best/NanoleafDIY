@@ -18,6 +18,8 @@ void get_panel_state();
 
 void set_panel_mode();
 
+void set_panel_brightness();
+
 /**
  * Sets a panel to a given solid color
  * --------------------------------------------------------------
