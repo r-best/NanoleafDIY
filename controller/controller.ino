@@ -52,6 +52,7 @@ void setup() {
     server.on("/panels/mode",           HTTP_POST,  set_panel_mode);
     server.on("/panels/color",          HTTP_POST,  set_panel_color);
     server.on("/panels/customgradient", HTTP_POST,  set_panel_customgradient);
+    server.on("/panels/blink",          HTTP_POST,  set_panel_blink);
 
     // Obtain current panel configuration & light settings
     network_startup();

@@ -26,4 +26,6 @@ void set_panel_color();
 
 void set_panel_customgradient();
 
+void set_panel_blink();
+
 #endif
