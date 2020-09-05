@@ -68,8 +68,8 @@ void processMessage(uint8_t port){
             fetch_state_action(port, cmd+1); break;
         case '4': // Set active color mode command (see `MODES` array in `leds.cpp`)
             set_mode_action(cmd+1); break;
-        case '5': // Set refresh rate command
-            set_refresh_rate_action(cmd+1); break;
+        case '5': // Set brightness command
+            set_brightness_action(cmd+1); break;
         case '6': // Set solid color command
             set_solid_color_action(cmd+1); break;
         case '7': // Set gradient command

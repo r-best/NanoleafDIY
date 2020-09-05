@@ -7,6 +7,7 @@ Adafruit_NeoPixel leds(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
 
 // Index of the currently selected builtin pattern
 uint8_t current_mode = 0;
+float brightness = 1;
 unsigned long timer;
 
 /** List of color modes, implementations in `led_patterns.h` */
@@ -21,12 +22,12 @@ Pattern *MODES[] = {
 
 void setup_leds(){
     leds.begin();
-    leds.setBrightness(25);
 
     // Load lighting state from EEPROM
     MODES[0] = get_solid_color_state();
     MODES[1] = get_custom_gradient_state();
     MODES[2] = get_blink_state();
+    set_brightness(get_brightness_state());
     set_mode(get_current_mode_state());
 
     timer = millis();
@@ -42,7 +43,11 @@ void update_leds(){
     }
 }
 
-void set_refresh_rate(uint8_t ms){ MODES[current_mode]->refresh_rate = ms; }
+void set_brightness(float x){
+    brightness = x;
+    MODES[current_mode]->init();
+    save_brightness_state();
+}
 
 int set_mode(uint8_t mode){
     MODES[mode]->init();

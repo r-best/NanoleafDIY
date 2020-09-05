@@ -18,8 +18,8 @@ void setup_leds();
 /** Updates the LEDs according to the active pattern, called in arduino loop */
 void update_leds();
 
-/** Adjusts how often (in ms) the LEDs are updated */
-void set_refresh_rate(uint8_t ms);
+/** Adjusts the brightness of the LEDs, takes a decimal value from 0.0-1.0 */
+void set_brightness(float brightness);
 
 /**
  * Sets the current pattern to be displayed on the panel

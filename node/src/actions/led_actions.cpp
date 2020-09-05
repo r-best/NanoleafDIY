@@ -27,12 +27,12 @@ void set_mode_action(char* data){
     set_mode(pattern);
 }
 
-void set_refresh_rate_action(char* data){
-    int speed = atoi(data);
-    if(speed < 0 || speed > 255)
+void set_brightness_action(char* data){
+    int brightness = atoi(data);
+    if(brightness < 0 || brightness > 255)
         return;
 
-    set_refresh_rate(speed);
+    set_brightness(brightness/255.0);
 }
 
 /** This is literally the same as `set_blinking_action` except it calls the gradient function on the last line, sorry */

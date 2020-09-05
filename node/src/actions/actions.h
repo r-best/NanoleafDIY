@@ -71,11 +71,11 @@ void fetch_state_action(uint8_t port, char* data);
 void set_mode_action(char* data);
 
 /**
- * Sets the ms delay used in updating the LED pattern
- * Command format: `5<speed>`
- *  Where speed is the number of ms to delay LED pattern updates
+ * Sets the overall brightness of the LEDs
+ * Command format: `5<brightness>`
+ *  Where brightness is a number from 0-255
  */
-void set_refresh_rate_action(char* data);
+void set_brightness_action(char* data);
 
 /**
  * Sets all of the LEDs to the given color

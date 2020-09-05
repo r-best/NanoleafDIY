@@ -5,6 +5,11 @@
 
 
 extern Adafruit_NeoPixel leds;
+extern float brightness;
+
+static uint32_t color(uint8_t r, uint8_t g, uint8_t b){
+    return leds.Color(r*brightness, g*brightness, b*brightness);
+}
 
 /** 
  * Base class for LED patterns, allows each
@@ -26,7 +31,7 @@ class SolidColor: public Pattern {
         uint8_t r, g, b;
         void init() override {
             refresh_rate = -1;
-            leds.fill(leds.Color(r, g, b));
+            leds.fill(color(r, g, b));
             leds.show();
         }
         void update() override { }
@@ -78,7 +83,7 @@ class FadingGradient: public Pattern {
             uint8_t newG = g[current_step] + elapsed_time*(g[nextStep] - g[current_step]);
             uint8_t newB = b[current_step] + elapsed_time*(b[nextStep] - b[current_step]);
 
-            leds.fill(leds.Color(newR, newG, newB));
+            leds.fill(color(newR, newG, newB));
         }
 
         FadingGradient(): FadingGradient(2, r, g, b, transitions) {
@@ -135,7 +140,7 @@ class Blink: public FadingGradient {
                 if(++current_step >= length)
                     current_step = 0;
                 last_update = now;
-                leds.fill(leds.Color(r[current_step], g[current_step], b[current_step]));
+                leds.fill(color(r[current_step], g[current_step], b[current_step]));
             }
         }
 };
@@ -157,7 +162,7 @@ class RainbowPattern: public Pattern {
                 leds.setPixelColor(i,
                     leds.gamma32(leds.ColorHSV(
                         hue + (i * 65536L / NUM_LEDS)
-                    ))
+                    ))*brightness
                 );
             hue += 256;
         }
@@ -174,7 +179,7 @@ class TheaterChase: public Pattern {
         void update() override {
             leds.clear();
             for(int i = offset; i < leds.numPixels(); i += 3)
-                leds.setPixelColor(i, leds.Color(255, 255, 255));
+                leds.setPixelColor(i, color(255, 255, 255));
             offset < 2 ? offset++ : offset = 0;
         }
 };
@@ -194,7 +199,7 @@ class TheaterChaseRainbow: public Pattern {
                 leds.setPixelColor(i, 
                     leds.gamma32(leds.ColorHSV(
                         hue + i * 65536L / NUM_LEDS
-                    ))
+                    ))*brightness
                 );
             offset < 2 ? offset++ : offset = 0;
             hue += 65536 / 90;

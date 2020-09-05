@@ -2,6 +2,7 @@
 
 // Sizes of different objects in memory, to compute positions to write objects to
 const uint8_t MODE_SIZE = sizeof(uint8_t);
+const uint8_t BRIGHTNESS_SIZE = sizeof(float);
 const uint8_t SOLID_COLOR_SIZE = sizeof(uint8_t)*3;
 uint8_t GRADIENT_SIZE = 0; // Updated on reading/writing gradient save data
 uint8_t BLINK_SIZE = 0; // Updated on reading/writing blink data
@@ -13,8 +14,17 @@ uint8_t get_current_mode_state(){
     return mode;
 }
 
-SolidColor* get_solid_color_state(){
+float get_brightness_state(){
     uint32_t offset = MODE_SIZE;
+
+    float mode;
+    EEPROM.get(offset, mode);
+    Serial.println(mode);
+    return mode;
+}
+
+SolidColor* get_solid_color_state(){
+    uint32_t offset = MODE_SIZE + BRIGHTNESS_SIZE;
 
     SolidColor *solidColor = new SolidColor(0,0,0);
     EEPROM.get(offset,                       solidColor->r);
@@ -25,7 +35,7 @@ SolidColor* get_solid_color_state(){
 }
 
 FadingGradient* get_custom_gradient_state(){
-    uint32_t offset = MODE_SIZE + SOLID_COLOR_SIZE;
+    uint32_t offset = MODE_SIZE + BRIGHTNESS_SIZE + SOLID_COLOR_SIZE;
 
     uint8_t length;
     EEPROM.get(offset, length);
@@ -46,7 +56,7 @@ FadingGradient* get_custom_gradient_state(){
 }
 
 Blink* get_blink_state(){
-    uint32_t offset = MODE_SIZE + SOLID_COLOR_SIZE + GRADIENT_SIZE;
+    uint32_t offset = MODE_SIZE + BRIGHTNESS_SIZE + SOLID_COLOR_SIZE + GRADIENT_SIZE;
 
     uint8_t length;
     EEPROM.get(offset, length);
@@ -70,16 +80,23 @@ void save_current_mode_state(){
     EEPROM.put(0, current_mode);
 }
 
+void save_brightness_state(){
+    uint32_t offset = MODE_SIZE;
+    EEPROM.put(offset, brightness);
+}
+
 void save_solid_color_state(){
+    uint32_t offset = MODE_SIZE + BRIGHTNESS_SIZE;
+
     SolidColor *solidColor = (SolidColor*)MODES[0];
 
-    EEPROM.put(1,                   solidColor->r);
-    EEPROM.put(1 + sizeof(uint8_t),     solidColor->g);
-    EEPROM.put(1 + sizeof(uint8_t)*2,   solidColor->b);
+    EEPROM.put(offset,                      solidColor->r);
+    EEPROM.put(offset + sizeof(uint8_t),    solidColor->g);
+    EEPROM.put(offset + sizeof(uint8_t)*2,  solidColor->b);
 }
 
 void save_custom_gradient_state(){
-    uint32_t offset = 1 + sizeof(uint8_t) * 3;
+    uint32_t offset = MODE_SIZE + BRIGHTNESS_SIZE + SOLID_COLOR_SIZE;
 
     FadingGradient *fadingGradient = (FadingGradient*)MODES[1];
 
@@ -97,7 +114,7 @@ void save_custom_gradient_state(){
 }
 
 void save_blink_state(){
-    uint32_t offset = 1 + sizeof(uint8_t) * 3;
+    uint32_t offset = MODE_SIZE + BRIGHTNESS_SIZE + SOLID_COLOR_SIZE + GRADIENT_SIZE;
 
     Blink *blink = (Blink*)MODES[2];
 
