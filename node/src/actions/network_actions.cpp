@@ -119,25 +119,11 @@ void fetch_state_action(uint8_t port, char* directions){
     if      (directions[0] == 'L') target_port = left;
     else if (directions[0] == 'R') target_port = right;
     else { // Else there are no directions left, so this panel is the target
-        if(current_mode == 0){
-            SolidColor *mode = (SolidColor*)MODES[0];
-            char resp[8];
-            sprintf(resp, "0%02X%02X%02X", mode->r, mode->g, mode->b);
-            PORTS[port]->println(resp);
-        } else if(current_mode == 1){
-            FadingGradient *mode = (FadingGradient*)MODES[1];
-            char *resp = (char*)malloc(10*mode->length + 3);
-            sprintf(resp, "1%d", mode->length);
-            for(int i = 0; i < mode->length; i++)
-                sprintf(resp + i*10 + 2, "%02X%02X%02X%04d", mode->r[i], mode->g[i], mode->b[i], mode->transitions[i]);
-            PORTS[port]->println(resp);
-            free(resp);
-        } else if(current_mode == 2){
-            Blink *mode = (Blink*)MODES[2];
-            char *resp = (char*)malloc(10*mode->length + 3);
-            sprintf(resp, "2%d", mode->length);
-            for(int i = 0; i < mode->length; i++)
-                sprintf(resp + i*10 + 2, "%02X%02X%02X%04d", mode->r[i], mode->g[i], mode->b[i], mode->transitions[i]);
+        if(current_mode == 0 || current_mode == 1){ // If mode is 0 or 1, they use the color set so append the color set data
+            char *resp = (char*)malloc(10*palette->length + 3);
+            sprintf(resp, "%d%d", current_mode, palette->length);
+            for(int i = 0; i < palette->length; i++)
+                sprintf(resp + i*10 + 2, "%02X%02X%02X%04d", (*palette)[i].r, (*palette)[i].g, (*palette)[i].b, (*palette)[i].time);
             PORTS[port]->println(resp);
             free(resp);
         } else { // All other modes have no configurable settings, so we can just send back the mode number

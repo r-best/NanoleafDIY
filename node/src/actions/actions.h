@@ -83,24 +83,6 @@ void set_brightness_action(char* data);
  *  'hex value' is the desired hexadecimal color code (e.x. 'FFFFFF')
  *  'rgb value' is the desired rgb color value padded to make each number 3 digits (e.x. '255000120')
  */
-void set_solid_color_action(char* data);
-
-/**
- * Changes the stored custom gradient pattern
- * Command format: `7<length><r><g><b><transition>[<r><g><b><transition>][<r><g><b><transition>]...`
- *  length is the number of steps in the gradient (i.e. how many sets of <r><g><b><transition> will follow)
- *  r, g, and b are hex color codes, and transition is the number of ms (four digits,
- *      zero padded if necessary) between this rgb step and the next
- */
-void set_gradient_action(char* data);
-
-/**
- * Changes the stored blinking pattern
- * Command format: `8<length><r><g><b><time>[<r><g><b><time>][<r><g><b><time>]...`
- *  length is the number of steps (i.e. how many sets of <r><g><b><time> will follow)
- *  r, g, and b are hex color codes, and time is the number of ms (four digits,
- *      zero padded if necessary) to wait before advancing to the next step
- */
-void set_blinking_action(char* data);
+void set_color_state_action(char* data);
 
 #endif

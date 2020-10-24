@@ -1,24 +1,6 @@
 #include "actions.h"
 
 
-void set_solid_color_action(char* data){
-    uint8_t colors[3] = {0, 0, 0};
-    for(int i = 0; i < 3; i++){
-        if(data[0] == '#'){ // If hexcode
-            char temp[3] = { data[(i*2)+1], data[i*2+2], '\0' };
-            colors[i] = strtol(temp, NULL, 16);
-        } else { // If rgb
-            char temp[4] = { data[i*3], data[i*3+1], data[i*3+2], '\0' };
-            colors[i] = strtol(temp, NULL, 10);
-        }
-
-        if(colors[i] < 0 || colors[i] > 255)
-            return;
-    }
-
-    set_solid(colors[0], colors[1], colors[2]);
-}
-
 void set_mode_action(char* data){
     int pattern = atoi(data);
     if(pattern < 0 || pattern > 255)
@@ -36,51 +18,23 @@ void set_brightness_action(char* data){
 }
 
 /** This is literally the same as `set_blinking_action` except it calls the gradient function on the last line, sorry */
-void set_gradient_action(char* data){
+void set_color_state_action(char* data){
     uint8_t length = data[0] - '0';
-    uint8_t *r = (uint8_t*)malloc(sizeof(uint8_t)*length);
-    uint8_t *g = (uint8_t*)malloc(sizeof(uint8_t)*length);
-    uint8_t *b = (uint8_t*)malloc(sizeof(uint8_t)*length);
-    uint32_t *transitions = (uint32_t*)malloc(sizeof(uint32_t)*length);
+    ColorStep *steps = (ColorStep*)malloc(sizeof(ColorStep)*length);
     for(int i = 0; i < length; i++){
         char tempR[] = { data[(i*10)+1], data[(i*10)+2], '\0' };
-        r[i] = (uint8_t)strtol(tempR, NULL, 16);
-
         char tempG[] = { data[(i*10)+3], data[(i*10)+4], '\0' };
-        g[i] = (uint8_t)strtol(tempG, NULL, 16);
-
         char tempB[] = { data[(i*10)+5], data[(i*10)+6], '\0' };
-        b[i] = (uint8_t)strtol(tempB, NULL, 16);
-
-        char tempTransitions[] = { data[(i*10)+7], data[(i*10)+8], data[(i*10)+9], data[(i*10)+10], '\0' };
-        transitions[i] = (uint32_t)strtol(tempTransitions, NULL, 10);
-    }
-
-    set_custom_gradient(length, r, g, b, transitions);
-}
-
-
-/** This is literally the same as `set_gradient_action` except it calls the blink function on the last line, sorry */
-void set_blinking_action(char* data){
-    uint8_t length = data[0] - '0';
-    uint8_t *r = (uint8_t*)malloc(sizeof(uint8_t)*length);
-    uint8_t *g = (uint8_t*)malloc(sizeof(uint8_t)*length);
-    uint8_t *b = (uint8_t*)malloc(sizeof(uint8_t)*length);
-    uint32_t *times = (uint32_t*)malloc(sizeof(uint32_t)*length);
-    for(int i = 0; i < length; i++){
-        char tempR[] = { data[(i*10)+1], data[(i*10)+2], '\0' };
-        r[i] = (uint8_t)strtol(tempR, NULL, 16);
-
-        char tempG[] = { data[(i*10)+3], data[(i*10)+4], '\0' };
-        g[i] = (uint8_t)strtol(tempG, NULL, 16);
-
-        char tempB[] = { data[(i*10)+5], data[(i*10)+6], '\0' };
-        b[i] = (uint8_t)strtol(tempB, NULL, 16);
-
         char tempTimes[] = { data[(i*10)+7], data[(i*10)+8], data[(i*10)+9], data[(i*10)+10], '\0' };
-        times[i] = (uint32_t)strtol(tempTimes, NULL, 10);
-        if(times[i] < 500) times[i] = 500;
+
+        steps[i] = ColorStep(
+            (uint8_t)strtol(tempR, NULL, 16),
+            (uint8_t)strtol(tempG, NULL, 16),
+            (uint8_t)strtol(tempB, NULL, 16),
+            (uint32_t)strtol(tempTimes, NULL, 10)
+        );
     }
 
-    set_blink(length, r, g, b, times);
+    set_color_state(steps, length);
 }
+// 62FFFFFF05000000000500

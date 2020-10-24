@@ -4,8 +4,33 @@
 #include "../utils/constants.h"
 
 
+struct ColorStep {
+    uint8_t r, g, b;
+    uint32_t time;
+
+    ColorStep(uint8_t r, uint8_t g, uint8_t b, uint32_t time){
+        this->r = r;
+        this->g = g;
+        this->b = b;
+        this->time = time;
+    }
+    ColorStep(): ColorStep(0, 0, 0, 1){};
+};
+class Palette {
+    ColorStep *steps;
+    public:
+        uint8_t length;
+        ColorStep operator[] (uint8_t x){ return steps[x]; }
+
+        Palette(ColorStep *steps, uint8_t length){
+            this->steps = steps;
+            this->length = length;
+        }
+};
+
 extern Adafruit_NeoPixel leds;
 extern float brightness;
+extern Palette *palette;
 
 static uint32_t color(uint8_t r, uint8_t g, uint8_t b){
     return leds.Color(r*brightness, g*brightness, b*brightness);
@@ -24,123 +49,71 @@ class Pattern {
 };
 
 /**
- * Pattern that sets the panel to a solid color with no updates
- */
-class SolidColor: public Pattern {
-    public:
-        uint8_t r, g, b;
-        void init() override {
-            refresh_rate = -1;
-            leds.fill(color(r, g, b));
-            leds.show();
-        }
-        void update() override { }
-
-        SolidColor(uint8_t r, uint8_t g, uint8_t b){
-            this->r = r;
-            this->g = g;
-            this->b = b;
-        }
-};
-
-/**
  * Fades between defined color steps over given time intervals
  * The color arrays r, g, and b store the desired color at each step in the gradient
  * (i.e. r[0] b[0] g[0] represents the starting color, r[1] g[1] b[1] is the second color, etc..)
  * and the transisitons array stores the time (in ms) it takes to fade between each step
  */
-class FadingGradient: public Pattern {
+class FadeMode: public Pattern {
     // Tracks current time in gradient
     unsigned long last_update;
     public:
         // The current step
         uint8_t current_step;
-        // The number of steps in the gradient
-        uint8_t length;
-        // Steps in color gradient, i.e. r[0] b[0] g[0] represents the starting color
-        uint8_t *r, *g, *b;
-        // Time between each color step, i.e. transitions[0] is
-        // the transisiton time (in ms) from step 0 to step 1
-        uint32_t *transitions;
 
         void init() override {
             refresh_rate = 10;
+            current_step = 0;
+            last_update = millis();
         };
         void update() override {
             // New color is the current step's color plus the fraction we are towards the next step's color based on elapsed time
-            float elapsed_time = (float)(millis()-last_update) / (float)transitions[current_step];
+            float elapsed_time = (float)(millis()-last_update) / (float)(*palette)[current_step].time;
 
             // If enough time has passed, advance to next step
             if(elapsed_time >= 1){
-                if(++current_step >= length)
+                if(++current_step >= palette->length)
                     current_step = 0;
                 elapsed_time = 0;
                 last_update = millis();
             }
 
-            uint8_t nextStep = current_step == length-1 ? 0 : current_step+1;
-            uint8_t newR = r[current_step] + elapsed_time*(r[nextStep] - r[current_step]);
-            uint8_t newG = g[current_step] + elapsed_time*(g[nextStep] - g[current_step]);
-            uint8_t newB = b[current_step] + elapsed_time*(b[nextStep] - b[current_step]);
+            uint8_t nextStep = current_step == palette->length-1 ? 0 : current_step+1;
+            uint8_t newR = (*palette)[current_step].r + elapsed_time*((*palette)[nextStep].r - (*palette)[current_step].r);
+            uint8_t newG = (*palette)[current_step].g + elapsed_time*((*palette)[nextStep].g - (*palette)[current_step].g);
+            uint8_t newB = (*palette)[current_step].b + elapsed_time*((*palette)[nextStep].b - (*palette)[current_step].b);
 
             leds.fill(color(newR, newG, newB));
-        }
-
-        FadingGradient(): FadingGradient(2, r, g, b, transitions) {
-            uint8_t r[] = { 0, 255 };
-            uint8_t g[] = { 0, 147 };
-            uint8_t b[] = { 0, 41 };
-            uint32_t transitions[] = { 1000, 1000 };
-        }
-        FadingGradient(uint8_t length){
-            this->length = length;
-            this->r = (uint8_t*)malloc(sizeof(uint8_t)*length);
-            this->g = (uint8_t*)malloc(sizeof(uint8_t)*length);
-            this->b = (uint8_t*)malloc(sizeof(uint8_t)*length);
-            this->transitions = (uint32_t*)malloc(sizeof(uint32_t)*length);
-        }
-        FadingGradient(uint8_t length, uint8_t *r, uint8_t *g, uint8_t *b, uint32_t *transitions) {
-            this->length = length;
-            this->r = r;
-            this->g = g;
-            this->b = b;
-            this->transitions = transitions;
-
-            this->current_step = 0;
-            this->last_update = millis();
-        }
-
-        ~FadingGradient() {
-            free(r);
-            free(g);
-            free(b);
-            free(transitions);
         }
 };
 
 /**
- * Similar to FadingGradient (see above), but blinks to the next color in the sequence instead
+ * Similar to FadeMode (see above), but blinks to the next color in the sequence instead
  * of gradually fading between them
  * The color arrays r, g, and b store the desired color at each step in the sequence
  * (i.e. r[0] b[0] g[0] represents the starting color, r[1] g[1] b[1] is the second color, etc..)
  * and the transisitons array stores the time (in ms) to wait until advancing to the next step
  */
-class Blink: public FadingGradient {
+class BlinkMode: public Pattern {
     // Tracks current time
     unsigned long last_update;
     public:
-        using FadingGradient::FadingGradient;
+        // The current step
+        uint8_t current_step;
+
         void init() override {
             refresh_rate = 10;
+            current_step = 0;
+            last_update = millis();
         };
         void update() override {
             // If enough time has passed, advance to next step
             unsigned long now = millis();
-            if(now-last_update >= transitions[current_step]){
-                if(++current_step >= length)
+            if(now-last_update >= (*palette)[current_step].time){
+                if(++current_step >= palette->length)
                     current_step = 0;
                 last_update = now;
-                leds.fill(color(r[current_step], g[current_step], b[current_step]));
+                leds.fill(color((*palette)[current_step].r, (*palette)[current_step].g, (*palette)[current_step].b));
             }
         }
 };
@@ -151,7 +124,7 @@ class Blink: public FadingGradient {
  * Adapted from Adafruit Neopixel library examples
  * https://github.com/adafruit/Adafruit_NeoPixel/blob/master/examples/buttoncycler/buttoncycler.ino
  */
-class RainbowPattern: public Pattern {
+class RainbowMode: public Pattern {
     unsigned short hue;
     public:
         void init() override { refresh_rate = 10; hue = 0; }

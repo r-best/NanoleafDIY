@@ -20,20 +20,12 @@ uint8_t get_current_mode_state();
 
 float get_brightness_state();
 
-SolidColor* get_solid_color_state();
-
-FadingGradient* get_custom_gradient_state();
-
-Blink* get_blink_state();
+Palette* get_color_state();
 
 void save_current_mode_state();
 
 void save_brightness_state();
 
-void save_solid_color_state();
-
-void save_custom_gradient_state();
-
-void save_blink_state();
+void save_color_state();
 
 #endif
