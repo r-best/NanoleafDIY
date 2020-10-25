@@ -55,36 +55,62 @@ class Pattern {
  * and the transisitons array stores the time (in ms) it takes to fade between each step
  */
 class FadeMode: public Pattern {
-    // Tracks current time in gradient
-    unsigned long last_update;
+    bool randomize;
+    bool synchronize;
+    
+    unsigned long last_update; // Tracks current time in gradient
+    uint8_t current_step; // The currently active step
+    uint8_t next_step; // The next step (only used if randomize is enabled, otherwise next step is just next one in list)
+    uint32_t timeToNextStep;
     public:
-        // The current step
-        uint8_t current_step;
-
         void init() override {
             refresh_rate = 10;
             current_step = 0;
+            next_step = palette->length > 1 ? 1 : 0;
+            timeToNextStep = (*palette)[current_step].time;
+
             last_update = millis();
-        };
+        }
         void update() override {
             // New color is the current step's color plus the fraction we are towards the next step's color based on elapsed time
-            float elapsed_time = (float)(millis()-last_update) / (float)(*palette)[current_step].time;
+            float elapsed_time = (float)(millis()-last_update) / (float)timeToNextStep;
 
             // If enough time has passed, advance to next step
             if(elapsed_time >= 1){
-                if(++current_step >= palette->length)
-                    current_step = 0;
+                // If randomize is enabled, choose a random step from the list instead of advancing to the next one
+                if(randomize){
+                    current_step = next_step;
+                    while(current_step == next_step)
+                        next_step = random(0, palette->length);
+                }
+                else{
+                    if(++current_step >= palette->length)
+                        current_step = 0;
+                    if(++next_step >= palette->length)
+                        next_step = 0;
+                }
+
+                // If synchronize is enabled, use the correct time value, else select a different time value from the list randomly
+                // This allows the arrangement of panels to not be changing colors in perfect sync
+                if(synchronize) timeToNextStep = (*palette)[current_step].time;
+                else            timeToNextStep = (*palette)[random(0, palette->length)].time;
+
                 elapsed_time = 0;
                 last_update = millis();
             }
 
-            uint8_t nextStep = current_step == palette->length-1 ? 0 : current_step+1;
-            uint8_t newR = (*palette)[current_step].r + elapsed_time*((*palette)[nextStep].r - (*palette)[current_step].r);
-            uint8_t newG = (*palette)[current_step].g + elapsed_time*((*palette)[nextStep].g - (*palette)[current_step].g);
-            uint8_t newB = (*palette)[current_step].b + elapsed_time*((*palette)[nextStep].b - (*palette)[current_step].b);
+            uint8_t newR = (*palette)[current_step].r + elapsed_time*((*palette)[next_step].r - (*palette)[current_step].r);
+            uint8_t newG = (*palette)[current_step].g + elapsed_time*((*palette)[next_step].g - (*palette)[current_step].g);
+            uint8_t newB = (*palette)[current_step].b + elapsed_time*((*palette)[next_step].b - (*palette)[current_step].b);
 
             leds.fill(color(newR, newG, newB));
         }
+
+        FadeMode(bool randomize, bool synchronize){
+            this->randomize = randomize;
+            this->synchronize = synchronize;
+        }
+        FadeMode(): FadeMode(false, true){}
 };
 
 /**
@@ -95,27 +121,51 @@ class FadeMode: public Pattern {
  * and the transisitons array stores the time (in ms) to wait until advancing to the next step
  */
 class BlinkMode: public Pattern {
-    // Tracks current time
-    unsigned long last_update;
+    bool randomize = false;
+    bool synchronize = false;
+
+    unsigned long last_update; // Tracks current time
+    uint8_t current_step; // The currently active step
+    uint32_t timeToNextStep;
     public:
-        // The current step
-        uint8_t current_step;
 
         void init() override {
             refresh_rate = 10;
             current_step = 0;
+            timeToNextStep = (*palette)[current_step].time;
+
             last_update = millis();
-        };
+        }
         void update() override {
             // If enough time has passed, advance to next step
             unsigned long now = millis();
-            if(now-last_update >= (*palette)[current_step].time){
-                if(++current_step >= palette->length)
-                    current_step = 0;
+            if(now-last_update >= timeToNextStep){
+                // If randomize is enabled, choose a random next step, else advance to next step in list
+                if(randomize){
+                    uint8_t old = current_step;
+                    while(old == current_step)
+                        current_step = random(0, palette->length);
+                }
+                else{
+                    if(++current_step >= palette->length)
+                        current_step = 0;
+                }
+
+                // If synchronize is enabled, use the correct time value, else select a different time value from the list randomly
+                // This allows the arrangement of panels to not be changing colors in perfect sync
+                if(synchronize) timeToNextStep = (*palette)[current_step].time;
+                else            timeToNextStep = (*palette)[random(0, palette->length)].time;
+
                 last_update = now;
                 leds.fill(color((*palette)[current_step].r, (*palette)[current_step].g, (*palette)[current_step].b));
             }
         }
+
+        BlinkMode(bool randomize, bool synchronize){
+            this->randomize = randomize;
+            this->synchronize = synchronize;
+        }
+        BlinkMode(): BlinkMode(false, true){}
 };
 
 /**

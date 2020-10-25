@@ -25,6 +25,7 @@ void setup() {
     port2.begin(115200);
     port3.begin(115200);
 
+    randomSeed(analogRead(0));
     setup_leds();
 }
 
