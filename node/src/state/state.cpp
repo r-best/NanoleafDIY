@@ -23,10 +23,12 @@ float get_brightness_state(){
 Palette* get_color_state(){
     uint32_t offset = MODE_SIZE + BRIGHTNESS_SIZE;
 
+    bool randomize, synchronize;
     uint8_t length;
-    EEPROM.get(offset, length);
-    COLOR_STATE_SIZE = sizeof(uint8_t) + (sizeof(uint8_t)*3 + sizeof(uint32_t)) * length;
-    offset += sizeof(uint8_t);
+    EEPROM.get(offset, randomize); offset += sizeof(bool);
+    EEPROM.get(offset, synchronize); offset += sizeof(bool);
+    EEPROM.get(offset, length); offset += sizeof(uint8_t);
+    COLOR_STATE_SIZE = sizeof(bool)*2 + sizeof(uint8_t) + (sizeof(uint8_t)*3 + sizeof(uint32_t)) * length;
 
     ColorStep *steps = (ColorStep*)malloc(sizeof(ColorStep)*length);
     for(int i = 0; i < length; i++){
@@ -38,7 +40,7 @@ Palette* get_color_state(){
         offset += sizeof(uint8_t)*3 + sizeof(uint32_t);
     }
 
-    return new Palette(steps, length);
+    return new Palette(steps, length, randomize, synchronize);
 }
 
 void save_current_mode_state(){
@@ -53,9 +55,10 @@ void save_brightness_state(){
 void save_color_state(){
     uint32_t offset = MODE_SIZE + BRIGHTNESS_SIZE;
 
-    EEPROM.put(offset, palette->length);
-    COLOR_STATE_SIZE = sizeof(uint8_t) + (sizeof(uint8_t)*3 + sizeof(uint32_t)) * palette->length;
-    offset += sizeof(uint8_t);
+    EEPROM.put(offset, palette->randomize); offset += sizeof(bool);
+    EEPROM.put(offset, palette->synchronize); offset += sizeof(bool);
+    EEPROM.put(offset, palette->length); offset += sizeof(uint8_t);
+    COLOR_STATE_SIZE = sizeof(bool)*2 + sizeof(uint8_t) + (sizeof(uint8_t)*3 + sizeof(uint32_t)) * palette->length;
 
     for(int i = 0; i < palette->length; i++){
         EEPROM.put(offset,                      (*palette)[i].r);

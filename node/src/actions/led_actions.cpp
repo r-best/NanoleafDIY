@@ -19,13 +19,15 @@ void set_brightness_action(char* data){
 
 /** This is literally the same as `set_blinking_action` except it calls the gradient function on the last line, sorry */
 void set_color_state_action(char* data){
-    uint8_t length = data[0] - '0';
+    bool randomize = data[0] - '0' == 1;
+    bool synchronize = data[1] - '0' == 1;
+    uint8_t length = data[2] - '0';
     ColorStep *steps = (ColorStep*)malloc(sizeof(ColorStep)*length);
     for(int i = 0; i < length; i++){
-        char tempR[] = { data[(i*10)+1], data[(i*10)+2], '\0' };
-        char tempG[] = { data[(i*10)+3], data[(i*10)+4], '\0' };
-        char tempB[] = { data[(i*10)+5], data[(i*10)+6], '\0' };
-        char tempTimes[] = { data[(i*10)+7], data[(i*10)+8], data[(i*10)+9], data[(i*10)+10], '\0' };
+        char tempR[] = { data[(i*10)+3], data[(i*10)+4], '\0' };
+        char tempG[] = { data[(i*10)+5], data[(i*10)+6], '\0' };
+        char tempB[] = { data[(i*10)+7], data[(i*10)+8], '\0' };
+        char tempTimes[] = { data[(i*10)+9], data[(i*10)+10], data[(i*10)+11], data[(i*10)+12], '\0' };
 
         steps[i] = ColorStep(
             (uint8_t)strtol(tempR, NULL, 16),
@@ -35,6 +37,6 @@ void set_color_state_action(char* data){
         );
     }
 
-    set_color_state(steps, length);
+    set_color_state(steps, length, randomize, synchronize);
 }
-// 62FFFFFF05000000000500
+// 6012FFFFFF05000000000500

@@ -28,6 +28,6 @@ void set_brightness(float brightness);
 int set_mode(uint8_t mode);
 
 /** Updates the stored custom gradient with the given parameters */
-void set_color_state(ColorStep* steps, uint8_t length);
+void set_color_state(ColorStep* steps, uint8_t length, bool randomize, bool synchronize);
 
 #endif

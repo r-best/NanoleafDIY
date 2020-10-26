@@ -11,7 +11,7 @@ float brightness = 1;
 unsigned long timer;
 
 // Current color set, 
-Palette *palette = new Palette(NULL, 0);
+Palette *palette = new Palette(NULL, 0, false, true);
 
 /** List of color modes, implementations in `led_patterns.h` */
 Pattern *MODES[] = {
@@ -56,9 +56,9 @@ int set_mode(uint8_t mode){
     return 0;
 }
 
-void set_color_state(ColorStep *steps, uint8_t length){
+void set_color_state(ColorStep *steps, uint8_t length, bool randomize, bool synchronize){
     delete palette;
-    palette = new Palette(steps, length);
+    palette = new Palette(steps, length, randomize, synchronize);
     MODES[current_mode]->init();
     save_color_state();
 }

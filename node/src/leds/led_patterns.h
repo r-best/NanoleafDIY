@@ -20,11 +20,14 @@ class Palette {
     ColorStep *steps;
     public:
         uint8_t length;
+        bool randomize, synchronize;
         ColorStep operator[] (uint8_t x){ return steps[x]; }
 
-        Palette(ColorStep *steps, uint8_t length){
+        Palette(ColorStep *steps, uint8_t length, bool randomize, bool synchronize){
             this->steps = steps;
             this->length = length;
+            this->randomize = randomize;
+            this->synchronize = synchronize;
         }
 };
 
@@ -55,9 +58,6 @@ class Pattern {
  * and the transisitons array stores the time (in ms) it takes to fade between each step
  */
 class FadeMode: public Pattern {
-    bool randomize;
-    bool synchronize;
-    
     unsigned long last_update; // Tracks current time in gradient
     uint8_t current_step; // The currently active step
     uint8_t next_step; // The next step (only used if randomize is enabled, otherwise next step is just next one in list)
@@ -78,7 +78,7 @@ class FadeMode: public Pattern {
             // If enough time has passed, advance to next step
             if(elapsed_time >= 1){
                 // If randomize is enabled, choose a random step from the list instead of advancing to the next one
-                if(randomize){
+                if(palette->randomize){
                     current_step = next_step;
                     while(current_step == next_step)
                         next_step = random(0, palette->length);
@@ -92,7 +92,7 @@ class FadeMode: public Pattern {
 
                 // If synchronize is enabled, use the correct time value, else select a different time value from the list randomly
                 // This allows the arrangement of panels to not be changing colors in perfect sync
-                if(synchronize) timeToNextStep = (*palette)[current_step].time;
+                if(palette->synchronize) timeToNextStep = (*palette)[current_step].time;
                 else            timeToNextStep = (*palette)[random(0, palette->length)].time;
 
                 elapsed_time = 0;
@@ -105,12 +105,6 @@ class FadeMode: public Pattern {
 
             leds.fill(color(newR, newG, newB));
         }
-
-        FadeMode(bool randomize, bool synchronize){
-            this->randomize = randomize;
-            this->synchronize = synchronize;
-        }
-        FadeMode(): FadeMode(false, true){}
 };
 
 /**
@@ -121,9 +115,6 @@ class FadeMode: public Pattern {
  * and the transisitons array stores the time (in ms) to wait until advancing to the next step
  */
 class BlinkMode: public Pattern {
-    bool randomize = false;
-    bool synchronize = false;
-
     unsigned long last_update; // Tracks current time
     uint8_t current_step; // The currently active step
     uint32_t timeToNextStep;
@@ -141,7 +132,7 @@ class BlinkMode: public Pattern {
             unsigned long now = millis();
             if(now-last_update >= timeToNextStep){
                 // If randomize is enabled, choose a random next step, else advance to next step in list
-                if(randomize){
+                if(palette->randomize){
                     uint8_t old = current_step;
                     while(old == current_step)
                         current_step = random(0, palette->length);
@@ -153,19 +144,13 @@ class BlinkMode: public Pattern {
 
                 // If synchronize is enabled, use the correct time value, else select a different time value from the list randomly
                 // This allows the arrangement of panels to not be changing colors in perfect sync
-                if(synchronize) timeToNextStep = (*palette)[current_step].time;
+                if(palette->synchronize) timeToNextStep = (*palette)[current_step].time;
                 else            timeToNextStep = (*palette)[random(0, palette->length)].time;
 
                 last_update = now;
                 leds.fill(color((*palette)[current_step].r, (*palette)[current_step].g, (*palette)[current_step].b));
             }
         }
-
-        BlinkMode(bool randomize, bool synchronize){
-            this->randomize = randomize;
-            this->synchronize = synchronize;
-        }
-        BlinkMode(): BlinkMode(false, true){}
 };
 
 /**
