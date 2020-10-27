@@ -7,11 +7,7 @@
 #include "src/actions/actions.h"
 
 
-// TODO BUGFIX: That thing where it writes "TestingOpen" on startup and it gets accepted as an invalid command
-// Causes the first network discovery request to fail
-
-// Establish ports (first is Serial, other two
-// are SoftwareSerials on pins 2/3 and 4/5)
+// Establish ports (first is Serial, other two are SoftwareSerials on pins 2/3 and 4/5)
 SoftwareSerial port2(2, 3), port3(4, 5);
 Stream* PORTS[3] = {
     &Serial,
@@ -52,12 +48,16 @@ void loop() {
  */
 void processMessage(uint8_t port){
     char *cmd = readSerial(port, -1);
-
+    _processMessage(port, cmd);
+    free(cmd);
+}
+void _processMessage(uint8_t port, char* cmd){
     switch(cmd[0]){
         case '0': // Forwarding command
             forward_cmd(port, cmd+1); break;
         case '1': // Broadcast command
-            // Not implemented
+            broadcast(port, cmd);
+            _processMessage(port, cmd+1); // Reprocess actual command after broadcasting to neighbors
             break;
         case '2': { // Network discovery command
             char* tree = discover_network(port); // Pass this command along to children to get their trees
@@ -78,6 +78,4 @@ void processMessage(uint8_t port){
         default:
             PORTS[port]->println(ERR_INVALID_COMMAND); break;
     }
-
-    free(cmd);
 }

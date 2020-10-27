@@ -92,8 +92,8 @@ class FadeMode: public Pattern {
 
                 // If synchronize is enabled, use the correct time value, else select a different time value from the list randomly
                 // This allows the arrangement of panels to not be changing colors in perfect sync
-                if(palette->synchronize) timeToNextStep = (*palette)[current_step].time;
-                else            timeToNextStep = (*palette)[random(0, palette->length)].time;
+                if(palette->synchronize)    timeToNextStep = (*palette)[current_step].time;
+                else                        timeToNextStep = (*palette)[random(0, palette->length)].time;
 
                 elapsed_time = 0;
                 last_update = millis();
@@ -144,8 +144,8 @@ class BlinkMode: public Pattern {
 
                 // If synchronize is enabled, use the correct time value, else select a different time value from the list randomly
                 // This allows the arrangement of panels to not be changing colors in perfect sync
-                if(palette->synchronize) timeToNextStep = (*palette)[current_step].time;
-                else            timeToNextStep = (*palette)[random(0, palette->length)].time;
+                if(palette->synchronize)    timeToNextStep = (*palette)[current_step].time;
+                else                        timeToNextStep = (*palette)[random(0, palette->length)].time;
 
                 last_update = now;
                 leds.fill(color((*palette)[current_step].r, (*palette)[current_step].g, (*palette)[current_step].b));

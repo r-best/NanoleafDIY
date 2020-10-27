@@ -34,6 +34,14 @@
 const char* forward_cmd(uint8_t port, char* data);
 
 /**
+ * Similar to forwarding, but targeted at every single node; takes in a command and repeats it
+ * to both neighbors
+ * Command format: `1<command>`
+ *  <command> is the command to be executed by every node down the chain, can be any other valid command
+ */
+const char* broadcast(uint8_t port, char* data);
+
+/**
  * Recursive Network Discovery ---------------------------------------------------------------
  * When a node receives this command it immediately replies "Acknowledged!" to let the caller
  * know they're present, and then sends the same command to its left and right neighbors. When

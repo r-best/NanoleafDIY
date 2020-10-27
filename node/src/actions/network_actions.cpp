@@ -32,6 +32,13 @@ const char* forward_cmd(uint8_t port, char* data){
     return MSG_SUCCESS;
 }
 
+const char* broadcast(uint8_t port, char* data){
+    for(uint8_t i = 0; i < 3; i++)
+        if(i != port) // Send command to all neighbors except the one it came from
+            PORTS[i]->println(data);
+    return MSG_SUCCESS;
+}
+
 /**
  * Helper method for network discovery, sends a discovery request to
  * the given neighbor and returns true or false if they acknowledge
