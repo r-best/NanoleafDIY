@@ -32,6 +32,7 @@ The serial commands accepted by the panel are always a single-digit command numb
 
 0. Forwarding command  
     `0<directions>|<target command>`  
+    - Primary way of sending commands to panels; the controller uses this command on its neighbor to funnel commands through to any target panel in the network
     - Used to send any other command to a target panel in the tree using its "directions", i.e. the chain of left and right turns needed to reach it from the controller
     - When any panel receives this command, it pops the first character off the string of directions and sends the command in that direction ('L' or 'R')
     - Example of directions to different panels in an arrangement:
