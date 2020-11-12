@@ -87,14 +87,14 @@ void get_panel_state(){
         return;
     }
 
-    // Find correct Node in stored linked list network representation & update its stored settings
+    // Find correct Node in cached linked list network representation & update its stored settings
     Node *panel = fetch_panel(data["directions"].as<String>().c_str());
     if(panel == NULL){
         send_response(400, "Panel does not exist");
         return;
     }
 
-    // Return the Node's saved config data
+    // Return the Node's cached config data
     char* buffer;
     if(panel->mode_data == NULL){
         buffer = (char*)malloc(2);
@@ -118,19 +118,13 @@ void set_panel_mode(){
     }
 
     const char* directions = data["directions"].as<String>().c_str();
+    uint8_t mode = strtol(data["mode"].as<String>().c_str(), NULL, 10);
 
     // Send command to panel to switch mode
-    char cmd[3];
-    sprintf(cmd, "4%s", data["mode"].as<String>().c_str());
+    char *cmd = (char*)malloc(3); // Malloc not necessarily needed here, but was getting a weird memory issue with a normal char[3], it overlapped with directions somehow
+    sprintf(cmd, "4%d", mode);
     send_command(directions, cmd);
-
-    // After switching mode, ask panel for current state to get any custom settings it has stored for the new mode
-    send_command(directions, "3");
-    char* resp = readSerial(DISCOVERY_HANDSHAKE_TIMEOUT);
-    if(resp == NULL){
-        send_response(500, "Error reading new panel state");
-        return;
-    }
+    free(cmd);
 
     // Find correct Node in stored linked list network representation & update its stored settings
     Node *panel = fetch_panel(directions);
@@ -138,10 +132,7 @@ void set_panel_mode(){
         send_response(400, "Panel does not exist");
         return;
     }
-    panel->mode = resp[0] - '0';
-    if(panel->mode_data == NULL)    panel->mode_data = (char*)malloc(strlen(resp));
-    else                            panel->mode_data = (char*)realloc(panel->mode_data, strlen(resp));
-    strcpy(panel->mode_data, resp+1);
+    panel->mode = mode;
 
     send_response(200, "");
 }
@@ -164,40 +155,7 @@ void set_panel_brightness(){
     send_response(200, "");
 }
 
-void set_panel_color(){
-    Log::println("Incoming request: Set Panel Color");
-
-    StaticJsonDocument<1000> data;
-    if(_parse_input(&data)){
-        send_response(500, ERR_PARSE_REQ_BODY);
-        return;
-    }
-
-    // Find correct Node in stored linked list network representation & update its stored settings
-    Node *panel = fetch_panel(data["directions"].as<String>().c_str());
-    if(panel == NULL){
-        send_response(400, "Panel does not exist");
-        return;
-    }
-
-    // If panel is currently in solid color mode, need to update our stored mode_data to reflect change
-    if(panel->mode == 0){
-        sprintf(panel->mode_data, "%02s%02s%02s",
-            data["r"].as<String>().c_str(),
-            data["g"].as<String>().c_str(),
-            data["b"].as<String>().c_str());
-    }
-
-    char cmd[22];
-    sprintf(cmd, "6#%02s%02s%02s",
-        data["r"].as<String>().c_str(),
-        data["g"].as<String>().c_str(),
-        data["b"].as<String>().c_str());
-    send_command(data["directions"].as<String>().c_str(), cmd);
-    send_response(200, "");
-}
-
-void set_panel_customgradient(){
+void set_panel_palette(){
     Log::println("Incoming request: Set Custom Gradient");
 
     StaticJsonDocument<1000> data;
@@ -213,68 +171,23 @@ void set_panel_customgradient(){
         return;
     }
 
-    int length = strtol(data["length"].as<String>().c_str(), NULL, 10);
-    char* new_mode_data = (char*)malloc(length*10+3);
-    sprintf(new_mode_data, "%d", length);
-    for(int i = 0; i < length; i++){
-        sprintf(new_mode_data+1+(i*10), "%02s%02s%02s%04d",
+    panel->randomize = data["randomize"].as<bool>();
+    panel->synchronize = data["synchronize"].as<bool>();
+    panel->length = strtol(data["length"].as<String>().c_str(), NULL, 10);
+    panel->mode_data = (char*)realloc(panel->mode_data, panel->length*10+1);
+    for(int i = 0; i < panel->length; i++){
+        sprintf(panel->mode_data+(i*10), "%02s%02s%02s%04d",
             data["steps"][i]["r"].as<String>().c_str(),
             data["steps"][i]["g"].as<String>().c_str(),
             data["steps"][i]["b"].as<String>().c_str(),
-            data["steps"][i]["t"].as<int>());
+            data["steps"][i]["t"].as<int>()
+        );
     }
+    panel->mode_data[panel->length*10] = '\0';
 
-    // If panel is currently in gradient mode, need to update our stored mode_data to reflect change
-    if(panel->mode == 1){
-        panel->mode_data = (char*)realloc(panel->mode_data, strlen(new_mode_data)+1);
-        strcpy(panel->mode_data, new_mode_data);
-    }
-
-    char *cmd = (char*)malloc(strlen(new_mode_data)+2);
-    sprintf(cmd, "7%s", new_mode_data);
+    char *cmd = (char*)malloc(panel->length*10+5);
+    sprintf(cmd, "6%d%d%d%s", panel->randomize, panel->synchronize, panel->length, panel->mode_data);
     send_command(data["directions"].as<String>().c_str(), cmd);
     send_response(200, "");
-    free(new_mode_data);
-    free(cmd);
-}
-
-void set_panel_blink(){
-    Log::println("Incoming request: Set Blink");
-
-    StaticJsonDocument<1000> data;
-    if(_parse_input(&data)){
-        send_response(500, ERR_PARSE_REQ_BODY);
-        return;
-    }
-
-    // Find correct Node in stored linked list network representation & update its stored settings
-    Node *panel = fetch_panel(data["directions"].as<String>().c_str());
-    if(panel == NULL){
-        send_response(400, "Panel does not exist");
-        return;
-    }
-
-    int length = strtol(data["length"].as<String>().c_str(), NULL, 10);
-    char* new_mode_data = (char*)malloc(length*10+3);
-    sprintf(new_mode_data, "%d", length);
-    for(int i = 0; i < length; i++){
-        sprintf(new_mode_data+1+(i*10), "%02s%02s%02s%04d",
-            data["steps"][i]["r"].as<String>().c_str(),
-            data["steps"][i]["g"].as<String>().c_str(),
-            data["steps"][i]["b"].as<String>().c_str(),
-            data["steps"][i]["t"].as<int>());
-    }
-
-    // If panel is currently in blink mode, need to update our stored mode_data to reflect change
-    if(panel->mode == 1){
-        panel->mode_data = (char*)realloc(panel->mode_data, strlen(new_mode_data)+1);
-        strcpy(panel->mode_data, new_mode_data);
-    }
-
-    char *cmd = (char*)malloc(strlen(new_mode_data)+2);
-    sprintf(cmd, "8%s", new_mode_data);
-    send_command(data["directions"].as<String>().c_str(), cmd);
-    send_response(200, "");
-    free(new_mode_data);
     free(cmd);
 }

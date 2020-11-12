@@ -36,6 +36,8 @@ typedef struct Node {
     Node* right;
     char* directions;   // Same representation as in forwarding command, a string of 'L's and 'R's
     int mode;           // Index of currently active lighting mode
+    bool randomize, synchronize;
+    long length;
     char* mode_data;    // String of configuration data for the current mode (e.g. for custom gradient mode, it would be a set of RGB values and transition times)
 
     Node(Node* parent, uint8_t directions_length){

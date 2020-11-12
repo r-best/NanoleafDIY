@@ -24,10 +24,6 @@ void set_panel_brightness();
  * Sets a panel to a given solid color
  * --------------------------------------------------------------
  */
-void set_panel_color();
-
-void set_panel_customgradient();
-
-void set_panel_blink();
+void set_panel_palette();
 
 #endif
