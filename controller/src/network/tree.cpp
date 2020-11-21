@@ -34,18 +34,14 @@ static int request_panel_states(){
 
             // Record light status data
             current->mode = resp[0] - '0';
-            switch(current->mode){
-                case 0: case 1: case 2: // Lighting modes that have custom config data
-                    current->mode_data = (char*)malloc(strlen(resp));
-                    strcpy(current->mode_data, resp+1);
-                    break;
-                default: // Other modes don't need custom data
-                    current->mode_data = NULL;
-                    break;
-            }
-            Log::print("Panel |");Log::print(current->directions);Log::print("| - Mode ");Log::print(current->mode);
-            if(current->mode_data != NULL){ Log::print(" - Data: ");Log::println(current->mode_data); }
-            else Log::println();
+            current->randomize = resp[1] - '0' == 1;
+            current->synchronize = resp[2] - '0' == 1;
+            current->palette = (char*)malloc(strlen(resp)-2);
+            strcpy(current->palette, resp+3);
+
+            Log::print("Panel |"); Log::print(current->directions);
+            Log::print("| - Mode "); Log::print(current->mode);
+            Log::print(" - Data: "); Log::println(current->palette);
         }
 
         // Navigate to next unvisited node (preference for left, then right, then back up the tree)

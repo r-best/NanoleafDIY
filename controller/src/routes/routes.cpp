@@ -95,15 +95,8 @@ void get_panel_state(){
     }
 
     // Return the Node's cached config data
-    char* buffer;
-    if(panel->mode_data == NULL){
-        buffer = (char*)malloc(2);
-        sprintf(buffer, "%d", panel->mode);
-    }
-    else{
-        buffer = (char*)malloc(strlen(panel->mode_data) + 1);
-        sprintf(buffer, "%d%s", panel->mode, panel->mode_data);
-    }
+    char *buffer = (char*)malloc(strlen(panel->palette) + 4);
+    sprintf(buffer, "%d%d%d%s", panel->mode, panel->randomize, panel->synchronize, panel->palette);
     send_response(200, buffer);
     free(buffer);
 }
@@ -174,19 +167,19 @@ void set_panel_palette(){
     panel->randomize = data["randomize"].as<bool>();
     panel->synchronize = data["synchronize"].as<bool>();
     panel->length = strtol(data["length"].as<String>().c_str(), NULL, 10);
-    panel->mode_data = (char*)realloc(panel->mode_data, panel->length*10+1);
+    panel->palette = (char*)realloc(panel->palette, panel->length*10+1);
     for(int i = 0; i < panel->length; i++){
-        sprintf(panel->mode_data+(i*10), "%02s%02s%02s%04d",
+        sprintf(panel->palette+(i*10), "%02s%02s%02s%04d",
             data["steps"][i]["r"].as<String>().c_str(),
             data["steps"][i]["g"].as<String>().c_str(),
             data["steps"][i]["b"].as<String>().c_str(),
             data["steps"][i]["t"].as<int>()
         );
     }
-    panel->mode_data[panel->length*10] = '\0';
+    panel->palette[panel->length*10] = '\0';
 
     char *cmd = (char*)malloc(panel->length*10+5);
-    sprintf(cmd, "6%d%d%d%s", panel->randomize, panel->synchronize, panel->length, panel->mode_data);
+    sprintf(cmd, "6%d%d%d%s", panel->randomize, panel->synchronize, panel->length, panel->palette);
     send_command(data["directions"].as<String>().c_str(), cmd);
     send_response(200, "");
     free(cmd);

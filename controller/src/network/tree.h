@@ -25,7 +25,7 @@
  *      (i.e. the panel connected to the controller is "", its left neighbor is "L", that one's right neighbor is "LR", etc..)
  *  - mode: Integer index of the currently active mode on the panel, detailed in the panel code documentation
  *      (e.x. 0 is solid color mode, 1 is custom gradient mode, 2 is rainbow, etc..)
- *  - mode_data: Custom data used by certain light modes
+ *  - palette: Custom data used by certain light modes
  *      (e.x. An RGB color value for solid color mode, an array of RGB values/transition times for custom gradient mode)
  * 
  *  *Note: The destructor acts recursively to destroy all the Node's children
@@ -38,7 +38,7 @@ typedef struct Node {
     int mode;           // Index of currently active lighting mode
     bool randomize, synchronize;
     long length;
-    char* mode_data;    // String of configuration data for the current mode (e.g. for custom gradient mode, it would be a set of RGB values and transition times)
+    char* palette;    // String of configuration data for the current mode (e.g. for custom gradient mode, it would be a set of RGB values and transition times)
 
     Node(Node* parent, uint8_t directions_length){
         this->directions = (char*)malloc(directions_length+1);
@@ -46,11 +46,13 @@ typedef struct Node {
         this->left = NULL;
         this->right = NULL;
         this->mode = -1;
-        this->mode_data = NULL;
+        this->randomize = false;
+        this->synchronize = true;
+        this->palette = NULL;
     }
     ~Node(){
         free(this->directions);
-        if(this->mode_data != NULL) free(this->mode_data);
+        if(this->palette != NULL) free(this->palette);
 
         if(this->left != NULL) delete this->left;
         if(this->right != NULL) delete this->right;

@@ -126,18 +126,12 @@ void fetch_state_action(uint8_t port, char* directions){
     if      (directions[0] == 'L') target_port = left;
     else if (directions[0] == 'R') target_port = right;
     else { // Else there are no directions left, so this panel is the target
-        if(current_mode == 0 || current_mode == 1){ // If mode is 0 or 1, they use the color set so append the color set data
-            char *resp = (char*)malloc(10*palette->length + 3);
-            sprintf(resp, "%d%d%d%d", current_mode, palette->randomize, palette->synchronize, palette->length);
-            for(int i = 0; i < palette->length; i++)
-                sprintf(resp + i*10 + 4, "%02X%02X%02X%04d", (*palette)[i].r, (*palette)[i].g, (*palette)[i].b, (*palette)[i].time);
-            PORTS[port]->println(resp);
-            free(resp);
-        } else { // All other modes have no configurable settings, so we can just send back the mode number
-            char resp[2];
-            sprintf(resp, "%d", current_mode);
-            PORTS[port]->println(resp);
-        }
+        char *resp = (char*)malloc(10*palette->length + 3);
+        sprintf(resp, "%d%d%d%d", current_mode, palette->randomize, palette->synchronize, palette->length);
+        for(int i = 0; i < palette->length; i++)
+            sprintf(resp + i*10 + 4, "%02X%02X%02X%04d", (*palette)[i].r, (*palette)[i].g, (*palette)[i].b, (*palette)[i].time);
+        PORTS[port]->println(resp);
+        free(resp);
         return;
     }
 

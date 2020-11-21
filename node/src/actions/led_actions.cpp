@@ -40,3 +40,4 @@ void set_color_state_action(char* data){
     set_color_state(steps, length, randomize, synchronize);
 }
 // 6012FFFFFF05000000000500
+// 6013FF0000050000FF0005000000FF0500

@@ -10,17 +10,18 @@ The controller is built to run on a NodeMcu ESP8266; it connects to one panel (t
 
 ### API Routes
 
-`GET /network`
+`GET /network`  
 
-`GET /network/refresh`
 
-`POST /panels/state`
+`GET /network/refresh`  
 
-`POST /panels/mode`
+`POST /panels/state`  
 
-`POST /panels/color`
+`POST /panels/mode`  
 
-`POST /panels/customgradient`
+`POST /panels/color`  
+
+`POST /panels/customgradient`  
 
 ## Node
 
@@ -31,36 +32,40 @@ The serial commands accepted by the panel are always a single-digit command numb
 ### Command List
 
 0. Forwarding command  
-    `0<directions>|<target command>`  
+    > `0<directions>|<target command>`  
     - Primary way of sending commands to panels; the controller uses this command on its neighbor to funnel commands through to any target panel in the network
     - Used to send any other command to a target panel in the tree using its "directions", i.e. the chain of left and right turns needed to reach it from the controller
     - When any panel receives this command, it pops the first character off the string of directions and sends the command in that direction ('L' or 'R')
     - Example of directions to different panels in an arrangement:
     ![Architecture Diagram](docs/Forwarding_example.png)
-    - In this arrangement, to change the color of the bottommost panel to red, the controller would send `0LRLRLLR|5#FF0000` to the root panel
-1. Broadcast command
-    `1<target command>`
+    - In this arrangement, to change the color of the bottommost panel to red, the controller would send `0LRLRLLR|601FF0000` to the root panel
+1. Broadcast command  
+    > `1<target command>`
     - Similar to forwarding, but with no target; sends the command to both neighbors, replicating it to every panel in the network recursively
     - Useful for applying a shared color palette or lighting mode to the whole network simultaneously
+    - To build off the forwarding example, the command to change every panel to red would be `16FF0000`
 2. Network Discovery  
-    `2`
+    > `2`
     - Used to recursively discover all panels connected to the tree
     - When a panel receives this command, it sends the same command to its left and right neighbors, concatenates their responses, wraps the whole thing in parentheses, and returns that to its parent
     - If the panel has no neighbors (is a leaf on the tree), it reples `(XX)` to represent that it has nothing to its left or right
     - This results in an encoding of the tree structure that can be deciphered by the controller to figure out the direction string needed to reach each panel
     - For our ongoing example, the encoded structure is as follows: `((((XX)X)((((XX)(((X(XX))(XX))((XX)X)))(XX))))((XX)X))`. (I think, it's hard to do by hand, I'll test it properly when I assemble that many panels)
-3. Fetch current state
-    `3`
+3. Fetch current state  
+    > `3`
     - This command allows the controller to fetch the current lighting state of a given panel; the panel will reply with its active mode (single digit number) appended with any parameters for that mode
     - e.x. If the panel was in solid color mode and was pure red, the state reply would be `0FF0000` (mode 0 + hex color code for red)
 4. Set Mode  
-    `4<mode>`
+    > `4<mode>`
     - Used to change the panel's lighting mode to one of the built-in presets (0 for solid color, 1 for custom gradient, 3 for rainbow, etc.. - see node documentation for full list)
     - For modes that require parameters (e.g. color), the panel saves the last state of each mode in EEPROM so it can pick up where it left off
 5. Set brightness  
-    `5<brightness>`
+    > `5<brightness>`
+    - Sets the brightness of the panel
+    - Parameters:
+      - `brightness`: Decimal value from 0 to 255, 0 being off and 255 being maximum brightness
 6. Set Color Palette  
-    `6<randomize><synchronize><length><r><g><b><transition>[<r><g><b><transition>][<r><g><b><transition>]...`
+    > `6<randomize><synchronize><length><r><g><b><transition>[<r><g><b><transition>][<r><g><b><transition>]...`
     - Used to set the color palette used in several lighting modes
     - Takes in the colors as a list of RGB values and delay times, as seen above
     - Persists the given palette in EEPROM
