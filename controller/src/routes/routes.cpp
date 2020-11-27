@@ -95,8 +95,8 @@ void get_panel_state(){
     }
 
     // Return the Node's cached config data
-    char *buffer = (char*)malloc(strlen(panel->palette) + 4);
-    sprintf(buffer, "%d%d%d%s", panel->mode, panel->randomize, panel->synchronize, panel->palette);
+    char *buffer = (char*)malloc(strlen(panel->palette) + 7);
+    sprintf(buffer, "%d%03d%d%d%s", panel->mode, panel->brightness, panel->randomize, panel->synchronize, panel->palette);
     send_response(200, buffer);
     free(buffer);
 }

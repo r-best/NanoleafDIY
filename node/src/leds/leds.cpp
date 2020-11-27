@@ -7,7 +7,8 @@ Adafruit_NeoPixel leds(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
 
 // Index of the currently selected builtin pattern
 uint8_t current_mode = 0;
-float brightness = 1;
+int brightness = 255;
+float brightness_mult = 1;
 unsigned long timer;
 
 // Current color set, 
@@ -43,8 +44,9 @@ void update_leds(){
     }
 }
 
-void set_brightness(float x){
+void set_brightness(int x){
     brightness = x;
+    brightness_mult = x/255.0;
     MODES[current_mode]->init();
     save_brightness_state();
 }

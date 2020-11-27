@@ -126,10 +126,10 @@ void fetch_state_action(uint8_t port, char* directions){
     if      (directions[0] == 'L') target_port = left;
     else if (directions[0] == 'R') target_port = right;
     else { // Else there are no directions left, so this panel is the target
-        char *resp = (char*)malloc(10*palette->length + 3);
-        sprintf(resp, "%d%d%d%d", current_mode, palette->randomize, palette->synchronize, palette->length);
+        char *resp = (char*)malloc(10*palette->length + 6);
+        sprintf(resp, "%d%03d%d%d%d", current_mode, brightness, palette->randomize, palette->synchronize, palette->length);
         for(int i = 0; i < palette->length; i++)
-            sprintf(resp + i*10 + 4, "%02X%02X%02X%04d", (*palette)[i].r, (*palette)[i].g, (*palette)[i].b, (*palette)[i].time);
+            sprintf(resp + i*10 + 7, "%02X%02X%02X%04d", (*palette)[i].r, (*palette)[i].g, (*palette)[i].b, (*palette)[i].time);
         PORTS[port]->println(resp);
         free(resp);
         return;

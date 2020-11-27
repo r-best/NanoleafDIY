@@ -14,7 +14,7 @@ void set_brightness_action(char* data){
     if(brightness < 0 || brightness > 255)
         return;
 
-    set_brightness(brightness/255.0);
+    set_brightness(brightness);
 }
 
 /** This is literally the same as `set_blinking_action` except it calls the gradient function on the last line, sorry */

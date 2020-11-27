@@ -19,7 +19,7 @@ void setup_leds();
 void update_leds();
 
 /** Adjusts the brightness of the LEDs, takes a decimal value from 0.0-1.0 */
-void set_brightness(float brightness);
+void set_brightness(int brightness);
 
 /**
  * Sets the current pattern to be displayed on the panel

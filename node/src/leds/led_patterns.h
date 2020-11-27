@@ -32,11 +32,12 @@ class Palette {
 };
 
 extern Adafruit_NeoPixel leds;
-extern float brightness;
+extern int brightness;
+extern float brightness_mult;
 extern Palette *palette;
 
 static uint32_t color(uint8_t r, uint8_t g, uint8_t b){
-    return leds.Color(r*brightness, g*brightness, b*brightness);
+    return leds.Color(r*brightness_mult, g*brightness_mult, b*brightness_mult);
 }
 
 /** 
@@ -170,7 +171,7 @@ class RainbowMode: public Pattern {
                 leds.setPixelColor(i,
                     leds.gamma32(leds.ColorHSV(
                         hue + (i * 65536L / NUM_LEDS)
-                    ))*brightness
+                    ))*brightness_mult
                 );
             hue += 256;
         }
@@ -207,7 +208,7 @@ class TheaterChaseRainbow: public Pattern {
                 leds.setPixelColor(i, 
                     leds.gamma32(leds.ColorHSV(
                         hue + i * 65536L / NUM_LEDS
-                    ))*brightness
+                    ))*brightness_mult
                 );
             offset < 2 ? offset++ : offset = 0;
             hue += 65536 / 90;

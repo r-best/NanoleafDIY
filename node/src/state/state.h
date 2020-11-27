@@ -18,7 +18,7 @@
 
 uint8_t get_current_mode_state();
 
-float get_brightness_state();
+int get_brightness_state();
 
 Palette* get_color_state();
 

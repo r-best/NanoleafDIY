@@ -34,13 +34,15 @@ static int request_panel_states(){
 
             // Record light status data
             current->mode = resp[0] - '0';
-            current->randomize = resp[1] - '0' == 1;
-            current->synchronize = resp[2] - '0' == 1;
-            current->palette = (char*)malloc(strlen(resp)-2);
-            strcpy(current->palette, resp+3);
+            current->brightness = strtol(new char[4]{ resp[1], resp[2], resp[3], '\0' }, NULL, 10);
+            current->randomize = resp[4] - '0' == 1;
+            current->synchronize = resp[5] - '0' == 1;
+            current->palette = (char*)malloc(strlen(resp)-5);
+            strcpy(current->palette, resp+6);
 
             Log::print("Panel |"); Log::print(current->directions);
             Log::print("| - Mode "); Log::print(current->mode);
+            Log::print("| - Brightness "); Log::print(current->brightness);
             Log::print(" - Data: "); Log::println(current->palette);
         }
 

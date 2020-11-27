@@ -2,7 +2,7 @@
 
 // Sizes of different objects in memory, to compute positions to write objects to
 const uint8_t MODE_SIZE = sizeof(uint8_t);
-const uint8_t BRIGHTNESS_SIZE = sizeof(float);
+const uint8_t BRIGHTNESS_SIZE = sizeof(int);
 uint8_t COLOR_STATE_SIZE = 0; // Updated on reading/writing color state save data
 
 
@@ -12,10 +12,10 @@ uint8_t get_current_mode_state(){
     return mode;
 }
 
-float get_brightness_state(){
+int get_brightness_state(){
     uint32_t offset = MODE_SIZE;
 
-    float brightness;
+    int brightness;
     EEPROM.get(offset, brightness);
     return brightness;
 }
