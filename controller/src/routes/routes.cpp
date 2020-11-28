@@ -145,6 +145,14 @@ void set_panel_brightness(){
     sprintf(cmd, "5%s", data["brightness"].as<String>().c_str());
     send_command(directions, cmd);
 
+    // Find correct Node in stored linked list network representation & update its stored settings
+    Node *panel = fetch_panel(data["directions"].as<String>().c_str());
+    if(panel == NULL){
+        send_response(400, "Panel does not exist");
+        return;
+    }
+    panel->brightness = strtol(data["brightness"].as<String>().c_str(), NULL, 10);
+
     send_response(200, "");
 }
 
