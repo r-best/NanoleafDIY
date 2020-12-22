@@ -44,6 +44,14 @@ static void send_command(const char* directions, char* cmd){
         Serial.println(fwdCmd);
         free(fwdCmd);
     }
+    // If directions is B, we're broadcasting this message to all panels
+    else if(strcmp(directions, "B") == 0){
+        char* bcastCmd = (char*)malloc(strlen(cmd) + 2);
+        sprintf(bcastCmd, "1%s", cmd);
+        Log::print("Sending command: ");Log::println(bcastCmd);
+        Serial.println(bcastCmd);
+        free(bcastCmd);
+    }
     // Else this is intended for the first panel, so no need for forwarding
     else{
         Log::print("Sending command: ");Log::println(cmd);
@@ -99,8 +107,14 @@ void get_panel_state(){
         return;
     }
 
+    const char* directions = data["directions"].as<String>().c_str();
+    if(strcmp(directions, "B") == 0){
+        send_response(400, "Get state command cannot be broadcast");
+        return;
+    }
+
     // Find correct Node in cached linked list network representation & update its stored settings
-    Node *panel = fetch_panel(data["directions"].as<String>().c_str());
+    Node *panel = fetch_panel(directions);
     if(panel == NULL){
         send_response(400, "Panel does not exist");
         return;
