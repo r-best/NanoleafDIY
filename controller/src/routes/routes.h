@@ -14,6 +14,8 @@ void get_network_configuration();
 
 void refresh_network_configuration();
 
+void synchronize_patterns();
+
 void get_panel_state();
 
 void set_panel_mode();

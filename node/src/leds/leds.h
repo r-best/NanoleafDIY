@@ -18,6 +18,14 @@ void setup_leds();
 /** Updates the LEDs according to the active pattern, called in arduino loop */
 void update_leds();
 
+/**
+ * Called as an interrupt when the interrupt pin goes high, restarts the current pattern
+ * 
+ * The wire on the interrupt pin runs in parallel through every panel, so when the
+ * controller sets it high all the panels will start their patterns in sync
+ */
+void restart_pattern();
+
 /** Adjusts the brightness of the LEDs, takes a decimal value from 0.0-1.0 */
 void set_brightness(int brightness);
 

@@ -8,7 +8,7 @@
 
 
 // Establish ports (first is Serial, other two are SoftwareSerials on pins 2/3 and 4/5)
-SoftwareSerial port2(2, 3), port3(4, 5);
+SoftwareSerial port2(3, 4), port3(5, 6);
 Stream* PORTS[3] = {
     &Serial,
     &port2,
@@ -20,6 +20,9 @@ void setup() {
     while(!Serial){;}
     port2.begin(115200);
     port3.begin(115200);
+
+    pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), restart_pattern, RISING);
 
     randomSeed(analogRead(0));
     setup_leds();

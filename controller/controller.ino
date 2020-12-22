@@ -21,6 +21,9 @@ void setup() {
     Log::begin();
     Log::println("Starting up");
 
+    pinMode(syncPin, OUTPUT);
+    digitalWrite(syncPin, LOW);
+
     // Connect to WiFi network defined in "config.h"
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     WiFi.config(IPAddress(192,168,0,231), IPAddress(192,168,0,1), IPAddress(255,255,255,0));
@@ -48,6 +51,7 @@ void setup() {
     });
     server.on("/network",               HTTP_GET,   get_network_configuration);
     server.on("/network/refresh",       HTTP_GET,   refresh_network_configuration);
+    server.on("/synchronize",           HTTP_POST,  synchronize_patterns);
     server.on("/panels/state",          HTTP_POST,  get_panel_state);
     server.on("/panels/mode",           HTTP_POST,  set_panel_mode);
     server.on("/panels/brightness",     HTTP_POST,  set_panel_brightness);

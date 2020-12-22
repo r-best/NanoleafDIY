@@ -15,6 +15,11 @@
 #define debugLogRX 5
 #define debugLogTX 4
 
+// Pin that contols panel light synchronization
+// When brought HIGH, triggers an interrupt on every panel simultaneously
+// that resets its current pattern to the ERR_PANEL_STATE_RESPONSE
+#define syncPin 16 // D0
+
 // Number of milliseconds the network discovery algorithm will
 // wait for a neighbor to acknowledge the request
 #define DISCOVERY_HANDSHAKE_TIMEOUT 1000

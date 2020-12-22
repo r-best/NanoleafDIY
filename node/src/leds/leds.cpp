@@ -44,6 +44,10 @@ void update_leds(){
     }
 }
 
+void restart_pattern(){
+    MODES[current_mode]->init();
+}
+
 void set_brightness(int x){
     brightness = x;
     brightness_mult = x/255.0;

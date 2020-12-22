@@ -78,6 +78,18 @@ void refresh_network_configuration(){
     send_response(200, tree);
 }
 
+void synchronize_patterns(){
+    Log::println("Incoming request: Synchronize Patterns");
+
+    // Set sync pin HIGH to trigger interrupt in panels
+    // and reset all patterns simultaneously
+    digitalWrite(syncPin, HIGH);
+    delay(500);
+    digitalWrite(syncPin, LOW);
+
+    send_response(200, "");
+}
+
 void get_panel_state(){
     Log::println("Incoming request: Get Panel State");
 

@@ -11,7 +11,9 @@
 // Number of LEDs in the panel
 #define NUM_LEDS 5
 // Arduino pin connected to LED strip data line
-#define LED_DATA_PIN 6
+#define LED_DATA_PIN 7
+// Pin used to control pattern synchronization across panel network
+#define INTERRUPT_PIN 2
 
 // Number of milliseconds the network discovery algorithm will
 // wait for a neighbor to acknowledge the request
