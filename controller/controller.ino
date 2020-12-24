@@ -38,9 +38,13 @@ void setup() {
     Log::print("Connected, IP address: ");
     Log::println(WiFi.localIP());
 
-    // Start MDNS, even though it's pointless because Android won't recognize it :(
+    // Start MDNS
+    char mdns_name[25] = "lightpanels-";
+    getMacString(mdns_name+12);
+    Log::print("Starting mdns with hostname ");
+    Log::println(mdns_name);
     mdns = new MDNSResponder();
-    if(!mdns->begin("lightpanels", WiFi.localIP()))
+    if(!mdns->begin(mdns_name, WiFi.localIP()))
         Log::println("Error starting MDNS");
 
     // Establish server routes
@@ -94,4 +98,13 @@ void network_startup(){
         delay(3000);
     }
     Log::println("Panel network mapping complete, starting webserver");
+}
+
+void getMacString(char* buf){
+    byte mac[6];
+    WiFi.macAddress(mac);
+    for(byte i = 0; i < 6; i++){
+        sprintf(buf+i*2, "%02x", mac[i]);
+    }
+    buf[12] = '\0';
 }
